@@ -8,7 +8,22 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Linking,
 } from 'react-native';
+
+async function openInstagram() {
+  const appUrl = 'instagram://user?username=corkandfizz';
+  const webUrl = 'https://www.instagram.com/corkandfizz';
+  try {
+    if (await Linking.canOpenURL(appUrl)) {
+      Linking.openURL(appUrl);
+    } else {
+      Linking.openURL(webUrl);
+    }
+  } catch {
+    Linking.openURL(webUrl);
+  }
+}
 import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
 import { loadWines, deleteWine } from '../storage/wineStorage';
@@ -70,7 +85,9 @@ export default function MyProfileScreen() {
             <Text style={styles.avatarEmoji}>🍷</Text>
           </View>
           <Text style={styles.appTitle}>Wine Pocket Pal</Text>
-          <Text style={styles.appSubtitle}>Created by Cork & Fizz, LLC</Text>
+          <TouchableOpacity onPress={() => Linking.openURL('https://www.corkandfizz.com')}>
+            <Text style={[styles.appSubtitle, styles.link]}>Created by Cork & Fizz, LLC</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Stats */}
@@ -125,7 +142,15 @@ export default function MyProfileScreen() {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>Wine Pocket Pal v1.0</Text>
-          <Text style={styles.footerText}>© Cork & Fizz, LLC</Text>
+          <View style={styles.footerRow}>
+            <TouchableOpacity onPress={() => Linking.openURL('https://www.corkandfizz.com')}>
+              <Text style={[styles.footerText, styles.link]}>© Cork & Fizz, LLC</Text>
+            </TouchableOpacity>
+            <Text style={styles.footerText}> · </Text>
+            <TouchableOpacity onPress={openInstagram}>
+              <Text style={[styles.footerText, styles.link]}>Instagram</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={{ height: 24 }} />
@@ -240,4 +265,6 @@ const styles = StyleSheet.create({
   dangerBtnText: { fontSize: 14, fontWeight: '700', color: Colors.disliked },
   footer: { alignItems: 'center', marginTop: 16, gap: 4 },
   footerText: { fontSize: 12, color: Colors.textMuted },
+  footerRow: { flexDirection: 'row', alignItems: 'center' },
+  link: { textDecorationLine: 'underline' },
 });

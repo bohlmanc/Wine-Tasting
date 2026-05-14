@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
+  Linking,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
@@ -14,6 +15,20 @@ import { RootStackParamList } from '../navigation/types';
 import { Colors } from '../constants/colors';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
+
+async function openInstagram() {
+  const appUrl = 'instagram://user?username=corkandfizz';
+  const webUrl = 'https://www.instagram.com/corkandfizz';
+  try {
+    if (await Linking.canOpenURL(appUrl)) {
+      Linking.openURL(appUrl);
+    } else {
+      Linking.openURL(webUrl);
+    }
+  } catch {
+    Linking.openURL(webUrl);
+  }
+}
 
 function HomeContent() {
   const navigation = useNavigation<Nav>();
@@ -64,7 +79,13 @@ function HomeContent() {
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Created by Cork & Fizz, LLC</Text>
+        <TouchableOpacity onPress={() => Linking.openURL('https://www.corkandfizz.com')}>
+          <Text style={[styles.footerText, styles.footerLink]}>Cork & Fizz, LLC</Text>
+        </TouchableOpacity>
+        <Text style={styles.footerDot}> · </Text>
+        <TouchableOpacity onPress={openInstagram}>
+          <Text style={[styles.footerText, styles.footerLink]}>Instagram</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -129,8 +150,18 @@ const styles = StyleSheet.create({
   footer: {
     paddingBottom: 24,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   footerText: {
+    color: Colors.textMuted,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  footerLink: {
+    textDecorationLine: 'underline',
+  },
+  footerDot: {
     color: Colors.textMuted,
     fontSize: 14,
     fontWeight: '600',

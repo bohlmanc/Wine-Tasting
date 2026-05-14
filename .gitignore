@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # Expo
 .expo/
+
+# API keys — never commit
+src/config/apiConfig.ts

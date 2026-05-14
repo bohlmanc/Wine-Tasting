@@ -105,6 +105,17 @@ export default function ScanLabelScreen() {
 
       const grapes = (data.grapes ?? []).filter(g => g.length > 0);
 
+      if (mode === 'offline') {
+        const anyFound = data.vintage || data.abv || data.country || grapes.length > 0;
+        if (!anyFound) {
+          Alert.alert(
+            'Nothing Detected',
+            'No vintage, ABV, grapes, or country were found in the photos.\n\nTips: make sure the label fills the frame and is well-lit. For name and producer, switch to AI (Online) mode.',
+          );
+          return;
+        }
+      }
+
       update({
         name: data.name ?? '',
         producer: data.producer ?? '',
@@ -122,6 +133,8 @@ export default function ScanLabelScreen() {
         Alert.alert('API Key Error', 'Your Anthropic API key is invalid. Check src/config/apiConfig.ts.');
       } else if (mode === 'online' && (msg.includes('fetch') || msg.includes('network'))) {
         Alert.alert('No Connection', 'No internet connection. Switch to Offline mode to scan without one.');
+      } else if (mode === 'offline') {
+        Alert.alert('Scan Error', `Text recognition failed: ${e?.message ?? 'unknown error'}. Try retaking the photo or switch to AI (Online) mode.`);
       } else {
         Alert.alert('Scan Failed', 'Could not read the labels. Try retaking the photos with better lighting.');
       }
