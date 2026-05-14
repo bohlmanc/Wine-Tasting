@@ -64,7 +64,7 @@ export default function GaugeDial({ steps, currentIndex, onChange }: GaugeDialPr
           <View style={[styles.fill, { width: `${norm * 100}%` as any }]} />
         </View>
         {trackWidth > 0 && (
-          <View style={[styles.thumb, { left: thumbLeft }]} />
+          <View style={[styles.thumb, { left: thumbLeft }]} pointerEvents="none" />
         )}
       </View>
 

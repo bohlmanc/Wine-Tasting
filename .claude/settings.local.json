@@ -6,7 +6,13 @@
       "Bash(npx expo *)",
       "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\(p.dependencies['react-dom'] || 'not found'\\)\")",
       "Bash(node -e \"console.log\\(require\\('./node_modules/expo-camera/package.json'\\).version\\)\")",
-      "Bash(node -e \"const m = require\\('./node_modules/expo-camera'\\); console.log\\(Object.keys\\(m\\).join\\('\\\\n'\\)\\)\")"
+      "Bash(node -e \"const m = require\\('./node_modules/expo-camera'\\); console.log\\(Object.keys\\(m\\).join\\('\\\\n'\\)\\)\")",
+      "PowerShell(npx expo --version)",
+      "PowerShell(node --version)",
+      "PowerShell(adb version)",
+      "PowerShell(Test-Path \"C:\\\\Program Files\\\\Android\\\\Android Studio\"; Test-Path \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\"; Get-ChildItem \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\" -ErrorAction SilentlyContinue | Select-Object Name)",
+      "PowerShell($sdkPath = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\"; Get-ChildItem \"$sdkPath\\\\platform-tools\" -ErrorAction SilentlyContinue | Select-Object Name; Write-Host \"---\"; Get-ChildItem \"$sdkPath\\\\emulator\" -Filter \"emulator.exe\" -ErrorAction SilentlyContinue | Select-Object Name; Write-Host \"---AVDs---\"; & \"$sdkPath\\\\emulator\\\\emulator.exe\" -list-avds 2>$null)",
+      "PowerShell($sdkPath = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\"; Test-Path \"$sdkPath\\\\platform-tools\\\\adb.exe\"; Get-ChildItem \"$sdkPath\\\\platform-tools\" | Select-Object Name)"
     ]
   }
 }
