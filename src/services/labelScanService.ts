@@ -1,4 +1,4 @@
-import { ANTHROPIC_API_KEY } from '../config/apiConfig';
+const ANTHROPIC_API_KEY = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY ?? '';
 
 export interface ScannedLabelData {
   name?: string;

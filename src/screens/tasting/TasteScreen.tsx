@@ -44,22 +44,22 @@ export default function TasteScreen() {
   const hasTannin = isRedWine;
 
   const [sweetnessIdx, setSweetnessIdx] = useState(
-    tasting.sweetness != null ? SWEETNESS_STEPS.indexOf(tasting.sweetness) : 0
+    tasting.sweetness ? SWEETNESS_STEPS.indexOf(tasting.sweetness) : 2
   );
   const [acidityIdx, setAcidityIdx] = useState(
-    tasting.acidity != null ? ACIDITY_STEPS.indexOf(tasting.acidity) : 2
+    tasting.acidity ? ACIDITY_STEPS.indexOf(tasting.acidity) : 2
   );
   const [tanninIdx, setTanninIdx] = useState(
-    tasting.tannin != null ? TANNIN_STEPS.indexOf(tasting.tannin) : 2
+    tasting.tannin ? TANNIN_STEPS.indexOf(tasting.tannin) : 2
   );
   const [alcoholIdx, setAlcoholIdx] = useState(
-    tasting.alcohol != null ? ALCOHOL_STEPS.indexOf(tasting.alcohol) : 2
+    tasting.alcohol ? ALCOHOL_STEPS.indexOf(tasting.alcohol) : 2
   );
   const [bodyIdx, setBodyIdx] = useState(
-    tasting.body != null ? BODY_STEPS.indexOf(tasting.body) : 2
+    tasting.body ? BODY_STEPS.indexOf(tasting.body) : 2
   );
   const [finishIdx, setFinishIdx] = useState(
-    tasting.finish != null ? FINISH_STEPS.indexOf(tasting.finish) : 2
+    tasting.finish ? FINISH_STEPS.indexOf(tasting.finish) : 2
   );
 
   const handleNext = () => {

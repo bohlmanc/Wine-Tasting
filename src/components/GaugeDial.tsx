@@ -16,11 +16,33 @@ export default function GaugeDial({ steps, currentIndex, onChange }: GaugeDialPr
   const norm = steps.length > 1 ? currentIndex / (steps.length - 1) : 0;
   const thumbLeft = norm * (trackWidth - THUMB_SIZE);
 
-  const handleTouch = (evt: GestureResponderEvent) => {
+  const handleGrant = (evt: GestureResponderEvent) => {
     if (trackWidth === 0) return;
     const x = Math.max(0, Math.min(trackWidth, evt.nativeEvent.locationX));
     const index = Math.round((x / trackWidth) * (steps.length - 1));
     onChange(Math.max(0, Math.min(steps.length - 1, index)));
+  };
+
+  const handleMove = (evt: GestureResponderEvent) => {
+    if (trackWidth === 0) return;
+    const x = Math.max(0, Math.min(trackWidth, evt.nativeEvent.locationX));
+    const stepWidth = trackWidth / (steps.length - 1);
+    const raw = x / stepWidth;
+    const lower = Math.floor(raw);
+    const frac = raw - lower;
+
+    // Dead zone: only snap to an adjacent step once the touch has crossed
+    // 35% past the midpoint, preventing oscillation near step boundaries.
+    let newIndex: number;
+    if (frac < 0.35) {
+      newIndex = lower;
+    } else if (frac > 0.65) {
+      newIndex = lower + 1;
+    } else {
+      newIndex = currentIndex;
+    }
+
+    onChange(Math.max(0, Math.min(steps.length - 1, newIndex)));
   };
 
   return (
@@ -35,8 +57,8 @@ export default function GaugeDial({ steps, currentIndex, onChange }: GaugeDialPr
         onLayout={e => setTrackWidth(e.nativeEvent.layout.width)}
         onStartShouldSetResponder={() => true}
         onMoveShouldSetResponder={() => true}
-        onResponderGrant={handleTouch}
-        onResponderMove={handleTouch}
+        onResponderGrant={handleGrant}
+        onResponderMove={handleMove}
       >
         <View style={styles.track}>
           <View style={[styles.fill, { width: `${norm * 100}%` as any }]} />
