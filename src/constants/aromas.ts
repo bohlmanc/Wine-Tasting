@@ -1,0 +1,25 @@
+export const FRUIT_TYPES = [
+  'Black Fruit',
+  'Red Fruit',
+  'Dried Fruit',
+  'Tropical Fruit',
+  'Tree Fruit',
+  'Citrus Fruit',
+];
+
+export const FRUIT_ITEMS: Record<string, string[]> = {
+  'Black Fruit': ['Black Cherry', 'Blackberry', 'Blueberry', 'Plum', 'Boysenberry', 'Black Currant'],
+  'Red Fruit': ['Raspberry', 'Strawberry', 'Cherry', 'Cranberry', 'Red Currant', 'Pomegranate'],
+  'Dried Fruit': ['Raisin', 'Fruitcake', 'Fig', 'Date', 'Fruit Leather'],
+  'Tropical Fruit': ['Mango', 'Pineapple', 'Passion Fruit', 'Guava', 'Lychee', 'Banana'],
+  'Tree Fruit': ['Apple', 'Pear', 'Peach', 'Apricot', 'Nectarine', 'Quince'],
+  'Citrus Fruit': ['Lemon', 'Lime', 'Orange', 'Grapefruit', 'Tangerine', 'Zest'],
+};
+
+export const HERB_ITEMS = ['Eucalyptus', 'Fennel', 'Mint', 'Oregano', 'Thyme', 'Grass'];
+
+export const SPICE_ITEMS = ['Black Pepper', 'White Pepper', 'Cinnamon', 'Clove', 'Vanilla', 'Nutmeg', 'Anise', 'Cardamom'];
+
+export const OUTDOOR_ITEMS = ['Mushroom', 'Forest Floor', 'Earth', 'Tobacco', 'Leather', 'Smoke', 'Wet Stone', 'Gravel', 'Barnyard', 'Truffle'];
+
+export const OTHER_ITEMS = ['Oak', 'Toast', 'Butter', 'Coffee', 'Dark Chocolate', 'Cedar', 'Flint', 'Honey', 'Cream', 'Brioche', 'Petrol', 'Mineral'];

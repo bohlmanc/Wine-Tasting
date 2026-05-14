@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Wine Pocket Pal",
+    "slug": "wine-pocket-pal",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#E8D0D8"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.corkfizz.winepocketpal"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#E8D0D8"
+      },
+      "package": "com.corkfizz.winepocketpal",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Wine Pocket Pal to access your photos to attach wine labels.",
+          "cameraPermission": "Allow Wine Pocket Pal to use the camera to scan wine labels."
+        }
+      ],
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "c1436b24-1c4d-4b7f-acab-03b163050ebe"
+      }
+    }
+  }
+}

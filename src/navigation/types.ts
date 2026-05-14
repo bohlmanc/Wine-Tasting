@@ -1,0 +1,21 @@
+export type RootStackParamList = {
+  Home: undefined;
+  AddWineType: undefined;
+  BasicInfo: undefined;
+  ScanLabel: undefined;
+  WineStyle: undefined;
+  LookColor: undefined;
+  LookDetails: { color: string; colorHex: string; colorSubtitle: string };
+  SmellMain: undefined;
+  SmellFruitType: undefined;
+  SmellFruitDetail: { fruitType: string };
+  SmellHerbsSpices: undefined;
+  SmellHerbSpiceDetail: { category: 'Herbs' | 'Spices' };
+  SmellOutdoorOther: { category: 'Outdoor' | 'Other' };
+  Taste: undefined;
+  Think: undefined;
+  MyWines: undefined;
+  WineDetail: { wineId: string };
+  WineTastingGuide: undefined;
+  MyProfile: undefined;
+};
