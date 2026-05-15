@@ -33,10 +33,67 @@ function extractVintage(text: string): string {
 }
 
 function extractAbv(text: string): string {
-  // Handles: "13.5%", "13,5% alc", "14% vol", "Alc. 13.5% by vol"
-  const m = text.match(/(?:alc\.?\s*)?(\d{1,2}[.,]\d)\s*%|(\d{2})\s*%\s*(?:alc|vol)/i);
-  if (!m) return '';
-  return `${(m[1] ?? m[2]).replace(',', '.')}%`;
+  // 1. Decimal number immediately followed by % (most reliable signal)
+  const p1 = text.match(/(\d{1,2}[.,]\d)\s*%/i);
+  if (p1) return `${p1[1].replace(',', '.')}%`;
+
+  // 2. Whole number % followed by alc/vol keyword
+  const p2 = text.match(/(\d{2})\s*%\s*(?:alc|vol)/i);
+  if (p2) return `${p2[1]}%`;
+
+  // 3. ABV keyword phrase near a number (keyword-anchored, any order)
+  const p3 = text.match(
+    /(?:alc(?:ohol)?\.?\s+by\s+vol(?:ume)?|abv)\s*[.:)]*\s*(\d{1,2}[.,]?\d*)\s*%?/i,
+  );
+  if (p3) {
+    const val = p3[1].replace(',', '.');
+    return `${val}%`;
+  }
+
+  // 4. Scan each line: if the line references alc/vol/abv/%, pull any wine-range number
+  for (const line of text.split('\n')) {
+    if (/alc|vol|abv|%/i.test(line)) {
+      // Prefer decimal (e.g. "13.5"), fall back to integer in wine ABV range (8–20)
+      const dec = line.match(/\b(\d{1,2}[.,]\d)\b/);
+      if (dec) return `${dec[1].replace(',', '.')}%`;
+      const whole = line.match(/\b(1[0-9]|[89])\b/);
+      if (whole) return `${whole[1]}%`;
+    }
+  }
+
+  // 5. Bare whole-number % anywhere as a last resort
+  const p5 = text.match(/\b(\d{2})\s*%/);
+  if (p5) return `${p5[1]}%`;
+
+  return '';
+}
+
+function extractProducer(text: string): string {
+  // Same-line patterns: "Produced [and] [Bottled] by Name"
+  const sameLinePatterns: RegExp[] = [
+    /(?:grown[, ]+)?(?:produced|crafted|made|estate)\s+(?:(?:and|&)\s+)?(?:bottled|vinified|cellared\s+)?(?:(?:and|&)\s+)?(?:bottled\s+)?by\s*:?\s*([^,\n]{3,60})/i,
+    /bottled\s+by\s*:?\s*([^,\n]{3,60})/i,
+    /winery\s*:\s*([^,\n]{3,60})/i,
+  ];
+
+  for (const pat of sameLinePatterns) {
+    const m = text.match(pat);
+    if (m) {
+      const candidate = m[1].trim();
+      if (candidate.length >= 3) return candidate;
+    }
+  }
+
+  // Multi-line: "Produced and Bottled by\nLOLA Wines St Helena,"
+  const mlM = text.match(
+    /(?:produced|crafted|made|grown|estate)[^\n]{0,60}by\s*:?\s*\n\s*([^,\n]{3,60})/i,
+  );
+  if (mlM) {
+    const candidate = mlM[1].trim();
+    if (candidate.length >= 3) return candidate;
+  }
+
+  return '';
 }
 
 function extractGrapes(text: string): string[] {
@@ -113,9 +170,8 @@ function parseWineText(text: string): ScannedLabelData {
     grapes: extractGrapes(text),
     country,
     region: extractRegion(text, country),
-    // Name and producer require AI interpretation — left blank for manual entry
     name: '',
-    producer: '',
+    producer: extractProducer(text),
     importer: extractImporter(text),
   };
 }

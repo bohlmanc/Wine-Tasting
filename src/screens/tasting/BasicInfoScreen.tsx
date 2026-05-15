@@ -22,7 +22,7 @@ import { RootStackParamList } from '../../navigation/types';
 import AppHeader from '../../components/AppHeader';
 import InfoModal from '../../components/InfoModal';
 import { Colors } from '../../constants/colors';
-import { WINE_COUNTRIES, GRAPE_VARIETIES } from '../../constants/wineData';
+import { WINE_COUNTRIES, WINE_REGIONS, GRAPE_VARIETIES } from '../../constants/wineData';
 import { useWineTasting } from '../../context/WineTastingContext';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -212,6 +212,7 @@ export default function BasicInfoScreen() {
   const [photo, setPhoto] = useState<string | null>(tasting.photo ?? null);
 
   const [countryPickerOpen, setCountryPickerOpen] = useState(false);
+  const [regionPickerOpen, setRegionPickerOpen] = useState(false);
   const [grapePickerOpen, setGrapePickerOpen] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const cameraRef = useRef<CameraView>(null);
@@ -222,6 +223,7 @@ export default function BasicInfoScreen() {
       setProducer(tasting.producer ?? '');
       setName(tasting.name ?? '');
       setCountry(tasting.country ?? '');
+      setRegion(tasting.region ?? '');
       setGrapes(tasting.grapes ?? []);
       setImporter(tasting.importer ?? '');
       setVintage(tasting.vintage ?? '');
@@ -321,11 +323,19 @@ export default function BasicInfoScreen() {
           </TouchableOpacity>
         </Row>
 
+        <Row label="Region:" noInfo>
+          {WINE_REGIONS[country]?.length > 0 ? (
+            <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setRegionPickerOpen(true)}>
+              <Text style={region ? styles.dropdownValue : styles.dropdownPlaceholder}>{region || ''}</Text>
+              <Text style={styles.chevron}>∨</Text>
+            </TouchableOpacity>
+          ) : (
+            <TextInput style={styles.input} value={region} onChangeText={setRegion} placeholder="" />
+          )}
+        </Row>
+
         {isFull && (
           <>
-            <Row label="Region:" noInfo>
-              <TextInput style={styles.input} value={region} onChangeText={setRegion} placeholder="" />
-            </Row>
             <Row label="Subregion:" noInfo>
               <TextInput style={styles.input} value={subregion} onChangeText={setSubregion} placeholder="" />
             </Row>
@@ -419,9 +429,16 @@ export default function BasicInfoScreen() {
       <PickerModal
         visible={countryPickerOpen}
         items={WINE_COUNTRIES}
-        onSelect={setCountry}
+        onSelect={(c) => { setCountry(c); setRegion(''); }}
         onClose={() => setCountryPickerOpen(false)}
         title="Select Country"
+      />
+      <PickerModal
+        visible={regionPickerOpen}
+        items={WINE_REGIONS[country] ?? []}
+        onSelect={setRegion}
+        onClose={() => setRegionPickerOpen(false)}
+        title="Select Region"
       />
       <GrapePickerModal
         visible={grapePickerOpen}
