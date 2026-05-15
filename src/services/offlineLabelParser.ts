@@ -96,17 +96,24 @@ function extractProducer(text: string): string {
   return '';
 }
 
+// Strip diacritics so OCR without special chars still matches canonical spellings
+function normalizeText(str: string): string {
+  return str.normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
 function extractGrapes(text: string): string[] {
-  const lower = text.toLowerCase();
+  const normalized = normalizeText(text).toLowerCase();
   return GRAPE_VARIETIES.filter(grape =>
     // Handle slash variants like "Syrah/Shiraz" — either side counts as a match
-    grape.toLowerCase().split('/').some(v => lower.includes(v.trim()))
+    grape.toLowerCase().split('/').some(v => normalized.includes(normalizeText(v.trim())))
   );
 }
 
 function wordBoundaryMatch(text: string, term: string): boolean {
-  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`\\b${escaped}\\b`, 'i').test(text);
+  const normText = normalizeText(text);
+  const normTerm = normalizeText(term);
+  const escaped = normTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`\\b${escaped}\\b`, 'i').test(normText);
 }
 
 function extractCountry(text: string): string {
