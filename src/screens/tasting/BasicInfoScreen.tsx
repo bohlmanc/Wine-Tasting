@@ -13,6 +13,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
@@ -187,7 +188,17 @@ export default function BasicInfoScreen() {
   const { tasting, update } = useWineTasting();
   const isFull = tasting.tastingType === 'full';
 
-  const [dateTasted, setDateTasted] = useState(tasting.dateTasted ?? '');
+  const parseStoredDate = (s: string | undefined): Date => {
+    if (!s) return new Date();
+    const [m, d, y] = s.split('/').map(Number);
+    const parsed = new Date(y, m - 1, d);
+    return isNaN(parsed.getTime()) ? new Date() : parsed;
+  };
+  const formatDate = (d: Date) =>
+    `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}/${d.getFullYear()}`;
+
+  const [dateTasted, setDateTasted] = useState<Date>(() => parseStoredDate(tasting.dateTasted));
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [producer, setProducer] = useState(tasting.producer ?? '');
   const [name, setName] = useState(tasting.name ?? '');
   const [country, setCountry] = useState(tasting.country ?? '');
@@ -252,7 +263,7 @@ export default function BasicInfoScreen() {
   };
 
   const handleNext = () => {
-    update({ dateTasted, producer, name, country, region, subregion, vineyard, grapes, importer, vintage, abv, photo });
+    update({ dateTasted: formatDate(dateTasted), producer, name, country, region, subregion, vineyard, grapes, importer, vintage, abv, photo });
     if (isFull) {
       navigation.navigate('WineStyle');
     } else {
@@ -274,13 +285,25 @@ export default function BasicInfoScreen() {
           <Text style={styles.scanBannerArrow}>›</Text>
         </TouchableOpacity>
 
-        <Row label="Date Tasted:" noInfo>
-          <TextInput
-            style={[styles.input, styles.inputShort]}
-            value={dateTasted}
-            onChangeText={setDateTasted}
-            placeholder="MM/DD/YYYY"
-          />
+        <Row label="Date:" noInfo>
+          <TouchableOpacity
+            style={[styles.input, styles.inputShort, styles.dateButton]}
+            onPress={() => setShowDatePicker(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.dateButtonText}>{formatDate(dateTasted)}</Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              value={dateTasted}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event: DateTimePickerEvent, selected?: Date) => {
+                setShowDatePicker(Platform.OS === 'ios');
+                if (selected) setDateTasted(selected);
+              }}
+            />
+          )}
         </Row>
 
         <Row label="Producer:" info={<InfoModal title="Producer" body="The winery or estate that produced the wine." />}>
@@ -499,6 +522,13 @@ const styles = StyleSheet.create({
   },
   inputShort: {
     width: 130,
+  },
+  dateButton: {
+    justifyContent: 'center',
+  },
+  dateButtonText: {
+    fontSize: 14,
+    color: Colors.text,
   },
   dropdownTrigger: {
     flexDirection: 'row',

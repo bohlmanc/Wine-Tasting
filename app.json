@@ -39,6 +39,7 @@
           "cameraPermission": "Allow Wine Pocket Pal to use the camera to scan wine labels."
         }
       ],
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "eas": {
