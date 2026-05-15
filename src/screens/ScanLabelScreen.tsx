@@ -98,6 +98,7 @@ export default function ScanLabelScreen() {
     if (!frontUri && !backUri) return;
 
     setLoading(true);
+    if (frontUri) update({ photo: frontUri });
     try {
       const data = mode === 'offline'
         ? await scanLabelOffline(frontUri, backUri)
@@ -125,6 +126,7 @@ export default function ScanLabelScreen() {
         grapes,
         abv: data.abv ?? '',
         importer: data.importer ?? '',
+        photo: frontUri ?? null,
       });
 
       navigation.goBack();

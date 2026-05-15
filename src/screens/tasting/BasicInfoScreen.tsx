@@ -228,6 +228,7 @@ export default function BasicInfoScreen() {
       setImporter(tasting.importer ?? '');
       setVintage(tasting.vintage ?? '');
       setAbv(tasting.abv ?? '');
+      setPhoto(tasting.photo ?? null);
     }, [tasting]),
   );
 
