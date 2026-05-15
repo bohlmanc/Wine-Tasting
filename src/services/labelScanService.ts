@@ -5,6 +5,7 @@ export interface ScannedLabelData {
   producer?: string;
   vintage?: string;
   country?: string;
+  region?: string;
   grapes?: string[];
   abv?: string;
   importer?: string;
@@ -60,6 +61,7 @@ function buildPrompt(hasFront: boolean, hasBack: boolean): string {
     `  "producer": "<winery or estate name>",\n` +
     `  "vintage": "<4-digit year or empty string>",\n` +
     `  "country": "<country of origin>",\n` +
+    `  "region": "<wine region or appellation, e.g. Napa Valley, Burgundy, Barolo, Rioja>",\n` +
     `  "grapes": ["<variety1>", "<variety2>"],\n` +
     `  "abv": "<alcohol percentage, e.g. 13.5%>",\n` +
     `  "importer": "<importer name or empty string>"\n` +

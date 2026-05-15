@@ -106,7 +106,7 @@ export default function ScanLabelScreen() {
       const grapes = (data.grapes ?? []).filter(g => g.length > 0);
 
       if (mode === 'offline') {
-        const anyFound = data.vintage || data.abv || data.country || grapes.length > 0;
+        const anyFound = data.vintage || data.abv || data.country || data.region || grapes.length > 0;
         if (!anyFound) {
           Alert.alert(
             'Nothing Detected',
@@ -121,6 +121,7 @@ export default function ScanLabelScreen() {
         producer: data.producer ?? '',
         vintage: data.vintage ?? '',
         country: data.country ?? '',
+        region: data.region ?? '',
         grapes,
         abv: data.abv ?? '',
         importer: data.importer ?? '',
