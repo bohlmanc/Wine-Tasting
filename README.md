@@ -21,6 +21,12 @@ With your phone connected via USB and USB debugging enabled, run:
 npx expo run:android
 ```
 
+Make sure you're using expo 52, that's what version is supported. Also ensure you install a dev client first with:
+
+```
+npx expo install expo-dev-client
+```
+
 This builds the app and deploys it directly to the connected device via Android Studio's toolchain.
 
 ## Launching on the App Store & Google Play
