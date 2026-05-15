@@ -6,6 +6,7 @@ type TastingState = Partial<Wine> & { tastingType: TastingType };
 type TastingAction =
   | { type: 'SET_TASTING_TYPE'; payload: TastingType }
   | { type: 'UPDATE'; payload: Partial<Wine> }
+  | { type: 'LOAD_WINE'; payload: Wine }
   | { type: 'RESET' };
 
 const initialState: TastingState = {
@@ -44,6 +45,8 @@ function reducer(state: TastingState, action: TastingAction): TastingState {
       return { ...initialState, tastingType: action.payload };
     case 'UPDATE':
       return { ...state, ...action.payload };
+    case 'LOAD_WINE':
+      return { ...action.payload };
     case 'RESET':
       return { ...initialState };
     default:
@@ -55,6 +58,7 @@ interface WineTastingContextValue {
   tasting: TastingState;
   setTastingType: (type: TastingType) => void;
   update: (data: Partial<Wine>) => void;
+  loadWine: (wine: Wine) => void;
   reset: () => void;
 }
 
@@ -67,10 +71,12 @@ export function WineTastingProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_TASTING_TYPE', payload: type });
   const update = (data: Partial<Wine>) =>
     dispatch({ type: 'UPDATE', payload: data });
+  const loadWine = (wine: Wine) =>
+    dispatch({ type: 'LOAD_WINE', payload: wine });
   const reset = () => dispatch({ type: 'RESET' });
 
   return (
-    <WineTastingContext.Provider value={{ tasting, setTastingType, update, reset }}>
+    <WineTastingContext.Provider value={{ tasting, setTastingType, update, loadWine, reset }}>
       {children}
     </WineTastingContext.Provider>
   );

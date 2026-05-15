@@ -1,0 +1,31 @@
+diff --git a/node_modules/expo-modules-autolinking/scripts/android/autolinking_implementation.gradle b/node_modules/expo-modules-autolinking/scripts/android/autolinking_implementation.gradle
+index 98c404e..2d94f6b 100644
+--- a/node_modules/expo-modules-autolinking/scripts/android/autolinking_implementation.gradle
++++ b/node_modules/expo-modules-autolinking/scripts/android/autolinking_implementation.gradle
+@@ -115,10 +115,22 @@ class ExpoAutolinkingManager {
+     String[] args = convertOptionsToCommandArgs('resolve', this.options)
+     args += ['--json']
+ 
+-    String output = providers.exec {
+-      workingDir(projectDir)
+-      commandLine(args)
+-    }.standardOutput.asText.get().trim()
++    // providers.exec deadlocks on Windows when subprocess output exceeds the pipe buffer.
++    // Write stdout to a temp file instead to avoid the deadlock.
++    def tempFile = File.createTempFile("expo-autolinking", ".json")
++    try {
++      new ProcessBuilder(args as List<String>)
++        .directory(projectDir)
++        .redirectOutput(tempFile)
++        .redirectErrorStream(false)
++        .start()
++        .waitFor()
++    } catch (Exception e) {
++      tempFile.delete()
++      throw e
++    }
++    String output = tempFile.text.trim()
++    tempFile.delete()
+     Object json = new JsonSlurper().parseText(output)
+ 
+     cachedResolvingResults = json

@@ -1,10 +1,14 @@
 # Wine Pocket Pal — Claude Context
 
 ## Stack
-- Expo SDK 50, React Native 0.73, TypeScript
+- Expo SDK 52, React Native 0.76.9, TypeScript
 - Navigation: `@react-navigation/native-stack`
 - Storage: AsyncStorage
-- Build: EAS (managed workflow) — `eas build --profile development` for dev builds
+- Build: Local builds (moved away from EAS for cost reasons)
+  - Android: `npx expo run:android` (Windows PC, eventually macOS)
+  - iOS: `npx expo run:ios` (macOS only, planned)
+  - Store deployment: Android via Google Play, iOS via App Store — both built and submitted locally
+  - Local device testing: direct USB deploy via the run commands above
 
 ## Key architecture
 - `App.tsx` → `WineTastingProvider` → `AppNavigator`
@@ -24,8 +28,8 @@
 `react-native-gesture-handler` is installed. Without `GestureHandlerRootView` wrapping the root in `App.tsx`, RNGH intercepts native touch events and silently drops them — buttons appear to do nothing and produce zero logs.
 **Fix already applied:** `App.tsx` imports `'react-native-gesture-handler'` first and wraps with `GestureHandlerRootView`.
 
-### ML Kit only works in EAS dev builds
-`@react-native-ml-kit/text-recognition` is a native module — not available in Expo Go. Offline scan mode will error in Expo Go; this is expected. Run `eas build --profile development` to test offline scanning on a real device.
+### ML Kit only works in local dev builds
+`@react-native-ml-kit/text-recognition` is a native module — not available in Expo Go. Offline scan mode will error in Expo Go; this is expected. Use `npx expo run:android` to test offline scanning on a real device.
 
 ### Metro must transform ML Kit's TS source
 The package ships `index.ts` as its main entry (no compiled JS). `metro.config.js` opts `@react-native-ml-kit` into Metro's transform pipeline so the bundler can handle it.
@@ -34,4 +38,7 @@ The package ships `index.ts` as its main entry (no compiled JS). `metro.config.j
 On a physical Android device running via `expo-dev-client`, `launchCameraAsync` does not bring the camera to the foreground until another modal/Activity is opened and closed. Choose from Library works fine. See **[docs/camera-launch-issue.md](docs/camera-launch-issue.md)** for full symptom description, everything that was tried, and next steps.
 
 ### No config plugin needed for ML Kit
-`@react-native-ml-kit/text-recognition` uses React Native autolinking — adding it to `app.json` plugins causes a Node.js type-stripping error because the package has no config plugin. Leave it out of plugins; EAS Build handles it via autolinking.
+`@react-native-ml-kit/text-recognition` uses React Native autolinking — adding it to `app.json` plugins causes a Node.js type-stripping error because the package has no config plugin. Leave it out of plugins; autolinking handles it during the local build.
+
+### Android local builds on Windows require patched node_modules
+`npx expo run:android` hangs at "Evaluating settings" on Windows due to pipe buffer deadlocks in two Gradle scripts. Fixes are applied via `patch-package` and survive `npm install` automatically. See **[docs/gradle-windows-build.md](docs/gradle-windows-build.md)** for full diagnosis, what was patched, and what to do if `android/` is regenerated.

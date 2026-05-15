@@ -10,14 +10,20 @@ export async function scanLabelOffline(
 
   if (frontUri) {
     const result = await TextRecognition.recognize(frontUri);
-    texts.push(result.blocks.map(b => b.text).join('\n'));
+    const text = result.blocks.map(b => b.text).join('\n');
+    console.log('[OCR] Front label:\n', text);
+    texts.push(text);
   }
   if (backUri) {
     const result = await TextRecognition.recognize(backUri);
-    texts.push(result.blocks.map(b => b.text).join('\n'));
+    const text = result.blocks.map(b => b.text).join('\n');
+    console.log('[OCR] Back label:\n', text);
+    texts.push(text);
   }
 
-  return parseWineText(texts.join('\n'));
+  const combined = texts.join('\n');
+  console.log('[OCR] Combined text:\n', combined);
+  return parseWineText(combined);
 }
 
 function extractVintage(text: string): string {

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,12 @@ import {
   FlatList,
   Platform,
   Image,
+  Alert,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
+import { CameraView, Camera } from 'expo-camera';
 import { RootStackParamList } from '../../navigation/types';
 import AppHeader from '../../components/AppHeader';
 import InfoModal from '../../components/InfoModal';
@@ -200,6 +202,8 @@ export default function BasicInfoScreen() {
 
   const [countryPickerOpen, setCountryPickerOpen] = useState(false);
   const [grapePickerOpen, setGrapePickerOpen] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const cameraRef = useRef<CameraView>(null);
 
   // Re-sync local state when returning from ScanLabelScreen
   useFocusEffect(
@@ -216,12 +220,35 @@ export default function BasicInfoScreen() {
 
   const removeGrape = (grape: string) => setGrapes(prev => prev.filter(g => g !== grape));
 
-  const pickPhoto = async () => {
+  const openCamera = async () => {
+    const permission = await Camera.getCameraPermissionsAsync();
+    if (!permission.granted) {
+      const request = await Camera.requestCameraPermissionsAsync();
+      if (!request.granted) {
+        Alert.alert('Permission Required', 'Camera access is needed to take photos. Please enable it in Settings.');
+        return;
+      }
+    }
+    setCameraOpen(true);
+  };
+
+  const pickFromLibrary = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.7,
     });
     if (!result.canceled) setPhoto(result.assets[0].uri);
+  };
+
+  const handleCapture = async () => {
+    if (!cameraRef.current) return;
+    try {
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
+      setPhoto(photo.uri);
+      setCameraOpen(false);
+    } catch (e: any) {
+      Alert.alert('Camera Error', e?.message ?? 'Could not capture photo.');
+    }
   };
 
   const handleNext = () => {
@@ -328,12 +355,33 @@ export default function BasicInfoScreen() {
           />
         </Row>
 
-        <View style={styles.photoRow}>
-          <Text style={styles.photoLabel}>Add Photo:</Text>
-          <TouchableOpacity style={styles.uploadBtn} onPress={pickPhoto}>
-            <Text style={styles.uploadBtnText}>{photo ? 'Change Photo' : 'Upload Photo'}</Text>
-          </TouchableOpacity>
-          {photo && <Image source={{ uri: photo }} style={styles.photoThumb} />}
+        <View style={styles.photoSection}>
+          <Text style={styles.photoSectionLabel}>Bottle Photo:</Text>
+          {photo ? (
+            <View style={styles.photoPreviewContainer}>
+              <Image source={{ uri: photo }} style={styles.photoPreview} resizeMode="contain" />
+              <View style={styles.photoPreviewActions}>
+                <TouchableOpacity style={styles.photoRetakeBtn} onPress={openCamera}>
+                  <Text style={styles.photoRetakeBtnText}>Retake</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.photoClearBtn} onPress={() => setPhoto(null)}>
+                  <Text style={styles.photoClearBtnText}>Remove</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.photoPlaceholder}>
+              <Text style={styles.photoPlaceholderIcon}>📷</Text>
+              <View style={styles.photoPlaceholderBtns}>
+                <TouchableOpacity style={styles.photoBtn} onPress={openCamera}>
+                  <Text style={styles.photoBtnText}>Take Photo</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.photoBtn, styles.photoBtnSecondary]} onPress={pickFromLibrary}>
+                  <Text style={[styles.photoBtnText, styles.photoBtnSecondaryText]}>Choose from Library</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </View>
 
         <View style={{ height: 80 }} />
@@ -358,6 +406,21 @@ export default function BasicInfoScreen() {
         onConfirm={setGrapes}
         onClose={() => setGrapePickerOpen(false)}
       />
+
+      <Modal visible={cameraOpen} animationType="slide" onRequestClose={() => setCameraOpen(false)}>
+        <View style={styles.cameraContainer}>
+          <CameraView ref={cameraRef} style={styles.camera} facing="back" />
+          <View style={styles.cameraControls}>
+            <TouchableOpacity onPress={() => setCameraOpen(false)} style={styles.cameraCancelBtn}>
+              <Text style={styles.cameraCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleCapture} style={styles.captureBtn}>
+              <View style={styles.captureInner} />
+            </TouchableOpacity>
+            <View style={{ width: 80 }} />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -495,22 +558,61 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   grapeTagText: { fontSize: 12, color: Colors.primaryDark, fontWeight: '600' },
-  photoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+  photoSection: {
     marginTop: 8,
     marginBottom: 8,
   },
-  photoLabel: { fontSize: 15, fontWeight: '700', color: Colors.text },
-  uploadBtn: {
-    backgroundColor: '#888',
-    borderRadius: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+  photoSectionLabel: { fontSize: 15, fontWeight: '700', color: Colors.text, marginBottom: 10 },
+  photoPlaceholder: {
+    borderWidth: 2,
+    borderColor: Colors.border,
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    height: 180,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    gap: 14,
   },
-  uploadBtnText: { color: Colors.white, fontWeight: '600', fontSize: 14 },
-  photoThumb: { width: 50, height: 50, borderRadius: 6 },
+  photoPlaceholderIcon: { fontSize: 32 },
+  photoPlaceholderBtns: { gap: 10, alignItems: 'center' },
+  photoBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    minWidth: 180,
+    alignItems: 'center',
+  },
+  photoBtnText: { color: Colors.white, fontWeight: '600', fontSize: 14 },
+  photoBtnSecondary: {
+    backgroundColor: Colors.white,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+  },
+  photoBtnSecondaryText: { color: Colors.primary },
+  photoPreviewContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+  },
+  photoPreview: { width: '100%', height: 200, backgroundColor: Colors.surface },
+  photoPreviewActions: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  photoRetakeBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRightWidth: 0.5,
+    borderRightColor: Colors.border,
+  },
+  photoRetakeBtnText: { color: Colors.primary, fontWeight: '600', fontSize: 14 },
+  photoClearBtn: { flex: 1, paddingVertical: 12, alignItems: 'center' },
+  photoClearBtnText: { color: Colors.disliked, fontWeight: '600', fontSize: 14 },
   nextBar: {
     backgroundColor: Colors.background,
     paddingHorizontal: 20,
@@ -560,4 +662,43 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   pickerItemText: { fontSize: 16, color: Colors.text },
+
+  cameraContainer: { flex: 1, backgroundColor: '#000' },
+  camera: { flex: 1 },
+  cameraControls: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingBottom: 48,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  cameraCancelBtn: {
+    width: 80,
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  cameraCancelText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  captureBtn: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 4,
+    borderColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  captureInner: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#fff',
+  },
 });

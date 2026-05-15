@@ -15,7 +15,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, CameraType } from 'expo-camera';
+import { CameraView, Camera } from 'expo-camera';
 import { RootStackParamList } from '../navigation/types';
 import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
@@ -39,7 +39,7 @@ export default function ScanLabelScreen() {
     setUri: (u: string) => void;
     setBase64: (b: string) => void;
   } | null>(null);
-  const cameraRef = useRef<Camera>(null);
+  const cameraRef = useRef<CameraView>(null);
 
   useEffect(() => {
     ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -218,7 +218,7 @@ export default function ScanLabelScreen() {
 
       <Modal visible={!!cameraTarget} animationType="slide" onRequestClose={() => setCameraTarget(null)}>
         <View style={styles.cameraContainer}>
-          <Camera ref={cameraRef} style={styles.camera} type={CameraType.back} />
+          <CameraView ref={cameraRef} style={styles.camera} facing="back" />
           <View style={styles.cameraControls}>
             <TouchableOpacity onPress={() => setCameraTarget(null)} style={styles.cameraCancelBtn}>
               <Text style={styles.cameraCancelText}>Cancel</Text>

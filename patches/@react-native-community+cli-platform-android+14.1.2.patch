@@ -1,0 +1,22 @@
+diff --git a/node_modules/@react-native-community/cli-platform-android/native_modules.gradle b/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
+index 218a860..91da2b2 100644
+--- a/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
++++ b/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
+@@ -414,8 +414,16 @@ class ReactNativeModules {
+                           .directory(directory)
+                           .redirectErrorStream(true)
+                           .start()
++          // Drain stdout before waitFor() to avoid Windows pipe buffer deadlock.
++          def baos = new ByteArrayOutputStream()
++          def inputStream = process.inputStream
++          def buf = new byte[4096]
++          def len
++          while ((len = inputStream.read(buf)) != -1) {
++              baos.write(buf, 0, len)
++          }
+           int exitCode = process.waitFor()
+-          def output = process.inputStream.text.trim()
++          def output = baos.toString().trim()
+           if (exitCode != 0) {
+               throw new Exception("Command '${command}' failed with exit code ${exitCode}.")
+           }

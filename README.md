@@ -13,6 +13,16 @@ To run a preview version of the build on Android:
 eas build --profile preview --platform android
 ```
 
+## Building locally on Android
+
+With your phone connected via USB and USB debugging enabled, run:
+
+```
+npx expo run:android
+```
+
+This builds the app and deploys it directly to the connected device via Android Studio's toolchain.
+
 ## Launching on the App Store & Google Play
 
 ### Prerequisites

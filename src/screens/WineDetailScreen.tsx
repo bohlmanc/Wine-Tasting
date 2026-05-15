@@ -2,29 +2,61 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
+  TouchableOpacity,
   StyleSheet,
   SafeAreaView,
   Platform,
   ScrollView,
   Image,
+  Alert,
 } from 'react-native';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
 import { getWine } from '../storage/wineStorage';
 import { Wine } from '../types';
+import { useWineTasting } from '../context/WineTastingContext';
 
 type Route = RouteProp<RootStackParamList, 'WineDetail'>;
+type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function WineDetailScreen() {
   const route = useRoute<Route>();
+  const navigation = useNavigation<Nav>();
+  const { loadWine } = useWineTasting();
   const { wineId } = route.params;
   const [wine, setWine] = useState<Wine | null>(null);
 
   useEffect(() => {
     getWine(wineId).then(setWine);
   }, [wineId]);
+
+  const handleUpdateTasting = () => {
+    if (!wine) return;
+    const isQuick = wine.tastingType === 'quick';
+
+    type EditScreen = 'BasicInfo' | 'WineStyle' | 'LookColor' | 'SmellMain' | 'Taste' | 'Think';
+    const startEdit = (screen: EditScreen) => {
+      loadWine(wine);
+      navigation.navigate(screen);
+    };
+
+    const buttons: { text: string; onPress?: () => void; style?: 'cancel' | 'default' | 'destructive' }[] = [
+      { text: 'Basic Info', onPress: () => startEdit('BasicInfo') },
+      ...(isQuick ? [] : [
+        { text: 'Wine Style', onPress: () => startEdit('WineStyle') },
+        { text: 'Look', onPress: () => startEdit('LookColor') },
+        { text: 'Aromas', onPress: () => startEdit('SmellMain') },
+        { text: 'Taste & Structure', onPress: () => startEdit('Taste') },
+      ]),
+      { text: 'My Thoughts', onPress: () => startEdit('Think') },
+      { text: 'Cancel', style: 'cancel' },
+    ];
+
+    Alert.alert('Update Tasting', 'Which section would you like to update?', buttons);
+  };
 
   if (!wine) {
     return (
@@ -83,6 +115,10 @@ export default function WineDetailScreen() {
               <Text style={styles.ratingText}>{wine.rating}/10</Text>
             )}
           </View>
+
+          <TouchableOpacity style={styles.updateBtn} onPress={handleUpdateTasting}>
+            <Text style={styles.updateBtnText}>Update Tasting</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Sight section */}
@@ -277,4 +313,19 @@ const styles = StyleSheet.create({
     color: Colors.primaryDark,
   },
   notesText: { fontSize: 14, color: Colors.text, lineHeight: 20 },
+  updateBtn: {
+    marginTop: 14,
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+  },
+  updateBtnText: {
+    color: Colors.white,
+    fontSize: 14,
+    fontWeight: '800',
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+  },
 });
