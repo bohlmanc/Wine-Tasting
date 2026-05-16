@@ -27,7 +27,7 @@ export default function AddWineTypeScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <AppHeader title="Add New Wine" />
+      <AppHeader title="Start Tasting" />
       <View style={styles.container}>
         <View style={styles.btnArea}>
           <TouchableOpacity

@@ -364,6 +364,36 @@ export default function BasicInfoScreen() {
           />
         </Row>
 
+        {/* Bottle photo — always visible */}
+        <View style={styles.photoSection}>
+          <Text style={styles.photoSectionLabel}>Bottle Photo:</Text>
+          {photo ? (
+            <View style={styles.photoPreviewContainer}>
+              <Image source={{ uri: photo }} style={styles.photoPreview} resizeMode="contain" />
+              <View style={styles.photoPreviewActions}>
+                <TouchableOpacity style={styles.photoRetakeBtn} onPress={openCamera}>
+                  <Text style={styles.photoRetakeBtnText}>Retake</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.photoClearBtn} onPress={() => setPhoto(null)}>
+                  <Text style={styles.photoClearBtnText}>Remove</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.photoPlaceholder}>
+              <Text style={styles.photoPlaceholderIcon}>📷</Text>
+              <View style={styles.photoPlaceholderBtns}>
+                <TouchableOpacity style={styles.photoBtn} onPress={openCamera}>
+                  <Text style={styles.photoBtnText}>Take Photo</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.photoBtn, styles.photoBtnSecondary]} onPress={pickFromLibrary}>
+                  <Text style={[styles.photoBtnText, styles.photoBtnSecondaryText]}>Choose from Library</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </View>
+
         {/* Expand/collapse toggle */}
         <TouchableOpacity style={styles.expandToggle} onPress={() => setExpanded(v => !v)} activeOpacity={0.7}>
           <Text style={styles.expandToggleText}>{expanded ? 'Hide fields ▲' : 'See all fields ▼'}</Text>
@@ -439,35 +469,6 @@ export default function BasicInfoScreen() {
                 keyboardType="decimal-pad"
               />
             </Row>
-
-            <View style={styles.photoSection}>
-              <Text style={styles.photoSectionLabel}>Bottle Photo:</Text>
-              {photo ? (
-                <View style={styles.photoPreviewContainer}>
-                  <Image source={{ uri: photo }} style={styles.photoPreview} resizeMode="contain" />
-                  <View style={styles.photoPreviewActions}>
-                    <TouchableOpacity style={styles.photoRetakeBtn} onPress={openCamera}>
-                      <Text style={styles.photoRetakeBtnText}>Retake</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.photoClearBtn} onPress={() => setPhoto(null)}>
-                      <Text style={styles.photoClearBtnText}>Remove</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : (
-                <View style={styles.photoPlaceholder}>
-                  <Text style={styles.photoPlaceholderIcon}>📷</Text>
-                  <View style={styles.photoPlaceholderBtns}>
-                    <TouchableOpacity style={styles.photoBtn} onPress={openCamera}>
-                      <Text style={styles.photoBtnText}>Take Photo</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.photoBtn, styles.photoBtnSecondary]} onPress={pickFromLibrary}>
-                      <Text style={[styles.photoBtnText, styles.photoBtnSecondaryText]}>Choose from Library</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              )}
-            </View>
           </>
         )}
 
