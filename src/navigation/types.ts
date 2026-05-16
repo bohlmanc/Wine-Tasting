@@ -14,8 +14,11 @@ export type RootStackParamList = {
   SmellOutdoorOther: { category: 'Outdoor' | 'Other' };
   Taste: undefined;
   Think: undefined;
-  MyWines: undefined;
+  MyTastings: undefined;
   WineDetail: { wineId: string };
   WineTastingGuide: undefined;
   MyProfile: undefined;
+  MyCellar: undefined;
+  AddCellarBottle: { bottleId?: string };
+  CellarBottleDetail: { bottleId: string };
 };

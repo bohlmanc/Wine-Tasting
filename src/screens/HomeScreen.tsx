@@ -50,15 +50,23 @@ function HomeContent() {
           onPress={() => navigation.navigate('AddWineType')}
           activeOpacity={0.85}
         >
-          <Text style={styles.btnText}>+ Add New Wine</Text>
+          <Text style={styles.btnText}>Start Tasting</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.btn, { backgroundColor: Colors.btnView }]}
-          onPress={() => navigation.navigate('MyWines')}
+          onPress={() => navigation.navigate('MyTastings')}
           activeOpacity={0.85}
         >
-          <Text style={styles.btnText}>View My Wines</Text>
+          <Text style={styles.btnText}>My Tastings</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[styles.btn, { backgroundColor: Colors.btnCellar }]}
+          onPress={() => navigation.navigate('MyCellar')}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.btnText}>My Cellar</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

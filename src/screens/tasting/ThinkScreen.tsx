@@ -48,7 +48,7 @@ export default function ThinkScreen() {
     try {
       await saveWine(wine);
       reset();
-      navigation.reset({ index: 1, routes: [{ name: 'Home' }, { name: 'MyWines' }] });
+      navigation.reset({ index: 1, routes: [{ name: 'Home' }, { name: 'MyTastings' }] });
     } catch {
       Alert.alert('Error', 'Could not save your tasting. Please try again.');
     }

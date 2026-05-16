@@ -17,11 +17,14 @@ import SmellHerbSpiceDetailScreen from '../screens/tasting/SmellHerbSpiceDetailS
 import SmellOutdoorOtherScreen from '../screens/tasting/SmellOutdoorOtherScreen';
 import TasteScreen from '../screens/tasting/TasteScreen';
 import ThinkScreen from '../screens/tasting/ThinkScreen';
-import MyWinesScreen from '../screens/MyWinesScreen';
+import MyTastingsScreen from '../screens/MyTastingsScreen';
 import WineDetailScreen from '../screens/WineDetailScreen';
 import WineTastingGuideScreen from '../screens/WineTastingGuideScreen';
 import MyProfileScreen from '../screens/MyProfileScreen';
 import ScanLabelScreen from '../screens/ScanLabelScreen';
+import MyCellarScreen from '../screens/MyCellarScreen';
+import AddCellarBottleScreen from '../screens/AddCellarBottleScreen';
+import CellarBottleDetailScreen from '../screens/CellarBottleDetailScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -47,10 +50,13 @@ export default function AppNavigator() {
         <Stack.Screen name="SmellOutdoorOther" component={SmellOutdoorOtherScreen} />
         <Stack.Screen name="Taste" component={TasteScreen} />
         <Stack.Screen name="Think" component={ThinkScreen} />
-        <Stack.Screen name="MyWines" component={MyWinesScreen} />
+        <Stack.Screen name="MyTastings" component={MyTastingsScreen} />
         <Stack.Screen name="WineDetail" component={WineDetailScreen} />
         <Stack.Screen name="WineTastingGuide" component={WineTastingGuideScreen} />
         <Stack.Screen name="MyProfile" component={MyProfileScreen} />
+        <Stack.Screen name="MyCellar" component={MyCellarScreen} />
+        <Stack.Screen name="AddCellarBottle" component={AddCellarBottleScreen} />
+        <Stack.Screen name="CellarBottleDetail" component={CellarBottleDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

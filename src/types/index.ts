@@ -46,3 +46,25 @@ export interface Wine {
 }
 
 export type PartialWine = Partial<Wine> & { id: string; tastingType: TastingType };
+
+export interface CellarBottle {
+  id: string;
+  createdAt: string;
+
+  name: string;
+  producer: string;
+  vintage: string;
+  country: string;
+  region: string;
+  grapes: string[];
+  style: WineStyle | null;
+  abv: string;
+  photo: string | null;
+
+  quantity: number;
+  purchaseDate: string;
+  purchasePrice: string;
+  drinkFrom: string;
+  drinkBy: string;
+  notes: string;
+}

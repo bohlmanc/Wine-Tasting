@@ -97,7 +97,7 @@ export default function MyWinesScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <AppHeader title="My Wines" />
+      <AppHeader title="My Tastings" />
       <View style={styles.container}>
         {wines.length === 0 ? (
           <View style={styles.empty}>
