@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   Platform,
   ScrollView,
+  TextInput,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -19,6 +20,8 @@ import { useWineTasting } from '../../context/WineTastingContext';
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'SmellOutdoorOther'>;
 
+const ALL_PREDEFINED = new Set([...OUTDOOR_ITEMS, ...OTHER_ITEMS]);
+
 export default function SmellOutdoorOtherScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
@@ -28,6 +31,10 @@ export default function SmellOutdoorOtherScreen() {
   const items = category === 'Outdoor' ? OUTDOOR_ITEMS : OTHER_ITEMS;
   const color = category === 'Outdoor' ? Colors.outdoorColor : Colors.otherColor;
   const aromas = tasting.aromas ?? [];
+
+  const [customInput, setCustomInput] = useState('');
+
+  const customAromas = aromas.filter(a => !ALL_PREDEFINED.has(a));
 
   const isSelected = (item: string) => aromas.includes(item);
 
@@ -39,10 +46,18 @@ export default function SmellOutdoorOtherScreen() {
     }
   };
 
+  const addCustom = () => {
+    const trimmed = customInput.trim();
+    if (trimmed && !aromas.includes(trimmed)) {
+      update({ aromas: [...aromas, trimmed] });
+    }
+    setCustomInput('');
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <AppHeader title="Step 2: Smell" />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={[styles.heading, { color }]}>{category.toUpperCase()}</Text>
         <Text style={styles.subheading}>Select all that apply:</Text>
 
@@ -66,6 +81,45 @@ export default function SmellOutdoorOtherScreen() {
               </TouchableOpacity>
             );
           })}
+        </View>
+
+        {customAromas.length > 0 && (
+          <View style={styles.customSection}>
+            <Text style={[styles.customLabel, { color }]}>Custom aromas:</Text>
+            <View style={styles.grid}>
+              {customAromas.map(item => (
+                <TouchableOpacity
+                  key={item}
+                  style={[styles.chip, styles.customChip, { borderColor: color, backgroundColor: color }]}
+                  onPress={() => update({ aromas: aromas.filter(a => a !== item) })}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.chipText, { color: Colors.white }]}>
+                    {item}{'  ✕'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+
+        <View style={styles.addRow}>
+          <TextInput
+            style={[styles.customInput, { borderColor: color }]}
+            placeholder="Add custom aroma…"
+            placeholderTextColor={Colors.textMuted}
+            value={customInput}
+            onChangeText={setCustomInput}
+            onSubmitEditing={addCustom}
+            returnKeyType="done"
+          />
+          <TouchableOpacity
+            style={[styles.addBtn, { backgroundColor: color }]}
+            onPress={addCustom}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.addBtnText}>Add</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -131,5 +185,42 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+  },
+  customSection: {
+    marginTop: 20,
+  },
+  customLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  customChip: {
+    opacity: 0.9,
+  },
+  addRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    gap: 10,
+  },
+  customInput: {
+    flex: 1,
+    borderWidth: 2,
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: Colors.text,
+    backgroundColor: Colors.background,
+  },
+  addBtn: {
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  addBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.white,
   },
 });

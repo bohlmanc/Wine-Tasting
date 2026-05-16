@@ -43,7 +43,7 @@ export default function AddWineTypeScreen() {
             onPress={() => choose('full')}
             activeOpacity={0.85}
           >
-            <Text style={styles.btnText}>Full Tasting</Text>
+            <Text style={styles.btnText}>Guided Tasting</Text>
           </TouchableOpacity>
         </View>
       </View>

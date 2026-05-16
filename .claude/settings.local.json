@@ -12,7 +12,16 @@
       "PowerShell(adb version)",
       "PowerShell(Test-Path \"C:\\\\Program Files\\\\Android\\\\Android Studio\"; Test-Path \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\"; Get-ChildItem \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\" -ErrorAction SilentlyContinue | Select-Object Name)",
       "PowerShell($sdkPath = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\"; Get-ChildItem \"$sdkPath\\\\platform-tools\" -ErrorAction SilentlyContinue | Select-Object Name; Write-Host \"---\"; Get-ChildItem \"$sdkPath\\\\emulator\" -Filter \"emulator.exe\" -ErrorAction SilentlyContinue | Select-Object Name; Write-Host \"---AVDs---\"; & \"$sdkPath\\\\emulator\\\\emulator.exe\" -list-avds 2>$null)",
-      "PowerShell($sdkPath = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\"; Test-Path \"$sdkPath\\\\platform-tools\\\\adb.exe\"; Get-ChildItem \"$sdkPath\\\\platform-tools\" | Select-Object Name)"
+      "PowerShell($sdkPath = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\"; Test-Path \"$sdkPath\\\\platform-tools\\\\adb.exe\"; Get-ChildItem \"$sdkPath\\\\platform-tools\" | Select-Object Name)",
+      "PowerShell(where.exe adb 2>$null; if \\(-not $?\\) { Get-ChildItem -Path \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\" -Filter \"adb.exe\" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName })",
+      "PowerShell(Get-ChildItem \"C:\\\\Program Files\" -Directory | Where-Object { $_.Name -match \"java|jdk|jre|adoptium|temurin|android\" } | Select-Object FullName)",
+      "PowerShell(Get-ChildItem \"C:\\\\Program Files\" -Directory | Select-Object Name | Where-Object { $_.Name -match \"java|jdk|jre|android|eclipse\" })",
+      "PowerShell([System.Environment]::SetEnvironmentVariable\\(\"JAVA_HOME\", \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\", \"User\"\\); [System.Environment]::SetEnvironmentVariable\\(\"Path\", \"$\\([System.Environment]::GetEnvironmentVariable\\('Path','User'\\)\\);C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\\\\bin\", \"User\"\\); Write-Host \"Done. JAVA_HOME set to: $\\([System.Environment]::GetEnvironmentVariable\\('JAVA_HOME','User'\\)\\)\")",
+      "PowerShell(if \\(Test-Path \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\"\\) { Get-ChildItem \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\" | Select-Object Name } else { Write-Output \"NOT FOUND\" })",
+      "PowerShell(Write-Output \"ANDROID_HOME=$env:ANDROID_HOME\")",
+      "PowerShell(Test-Path \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\"; $env:LOCALAPPDATA)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\codyb\\\\Desktop\\\\Claude\\\\Wine App\\\\src\\\\screens\\\\tasting\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object Name)"
     ]
   }
 }

@@ -1,16 +1,18 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { Wine, TastingType, WineStyle } from '../types';
 
-type TastingState = Partial<Wine> & { tastingType: TastingType };
+type TastingState = Partial<Wine> & { tastingType: TastingType; scanApplied: boolean };
 
 type TastingAction =
   | { type: 'SET_TASTING_TYPE'; payload: TastingType }
   | { type: 'UPDATE'; payload: Partial<Wine> }
   | { type: 'LOAD_WINE'; payload: Wine }
-  | { type: 'RESET' };
+  | { type: 'RESET' }
+  | { type: 'SET_SCAN_APPLIED'; payload: boolean };
 
 const initialState: TastingState = {
   tastingType: 'full',
+  scanApplied: false,
   dateTasted: new Date().toLocaleDateString('en-US'),
   producer: '',
   name: '',
@@ -49,6 +51,8 @@ function reducer(state: TastingState, action: TastingAction): TastingState {
       return { ...action.payload };
     case 'RESET':
       return { ...initialState };
+    case 'SET_SCAN_APPLIED':
+      return { ...state, scanApplied: action.payload };
     default:
       return state;
   }
@@ -60,6 +64,7 @@ interface WineTastingContextValue {
   update: (data: Partial<Wine>) => void;
   loadWine: (wine: Wine) => void;
   reset: () => void;
+  setScanApplied: (v: boolean) => void;
 }
 
 const WineTastingContext = createContext<WineTastingContextValue | null>(null);
@@ -74,9 +79,11 @@ export function WineTastingProvider({ children }: { children: ReactNode }) {
   const loadWine = (wine: Wine) =>
     dispatch({ type: 'LOAD_WINE', payload: wine });
   const reset = () => dispatch({ type: 'RESET' });
+  const setScanApplied = (v: boolean) =>
+    dispatch({ type: 'SET_SCAN_APPLIED', payload: v });
 
   return (
-    <WineTastingContext.Provider value={{ tasting, setTastingType, update, loadWine, reset }}>
+    <WineTastingContext.Provider value={{ tasting, setTastingType, update, loadWine, reset, setScanApplied }}>
       {children}
     </WineTastingContext.Provider>
   );

@@ -27,7 +27,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function ScanLabelScreen() {
   const navigation = useNavigation<Nav>();
-  const { update } = useWineTasting();
+  const { update, setScanApplied } = useWineTasting();
 
   const [mode, setMode] = useState<'online' | 'offline'>('online');
   const [frontUri, setFrontUri] = useState<string | null>(null);
@@ -129,6 +129,7 @@ export default function ScanLabelScreen() {
         photo: frontUri ?? null,
       });
 
+      setScanApplied(true);
       navigation.goBack();
     } catch (e: any) {
       const msg = e?.message ?? 'Unknown error';

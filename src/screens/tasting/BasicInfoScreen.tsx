@@ -24,6 +24,8 @@ import InfoModal from '../../components/InfoModal';
 import { Colors } from '../../constants/colors';
 import { WINE_COUNTRIES, WINE_REGIONS, GRAPE_VARIETIES } from '../../constants/wineData';
 import { useWineTasting } from '../../context/WineTastingContext';
+import { saveWine } from '../../storage/wineStorage';
+import { Wine } from '../../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -185,8 +187,9 @@ function GrapePickerModal({
 
 export default function BasicInfoScreen() {
   const navigation = useNavigation<Nav>();
-  const { tasting, update } = useWineTasting();
+  const { tasting, update, reset, setScanApplied } = useWineTasting();
   const isFull = tasting.tastingType === 'full';
+  const isEditing = Boolean(tasting.id);
 
   const parseStoredDate = (s: string | undefined): Date => {
     if (!s) return new Date();
@@ -211,6 +214,8 @@ export default function BasicInfoScreen() {
   const [abv, setAbv] = useState(tasting.abv ?? '');
   const [photo, setPhoto] = useState<string | null>(tasting.photo ?? null);
 
+  const [expanded, setExpanded] = useState(false);
+
   const [countryPickerOpen, setCountryPickerOpen] = useState(false);
   const [regionPickerOpen, setRegionPickerOpen] = useState(false);
   const [grapePickerOpen, setGrapePickerOpen] = useState(false);
@@ -229,6 +234,10 @@ export default function BasicInfoScreen() {
       setVintage(tasting.vintage ?? '');
       setAbv(tasting.abv ?? '');
       setPhoto(tasting.photo ?? null);
+      if (tasting.scanApplied) {
+        setExpanded(true);
+        setScanApplied(false);
+      }
     }, [tasting]),
   );
 
@@ -274,6 +283,39 @@ export default function BasicInfoScreen() {
     }
   };
 
+  const handleUpdate = async () => {
+    if (!tasting.id) return;
+    const wine: Wine = {
+      ...(tasting as Wine),
+      dateTasted: formatDate(dateTasted),
+      producer,
+      name,
+      country,
+      region,
+      subregion,
+      vineyard,
+      grapes,
+      importer,
+      vintage,
+      abv,
+      photo,
+    };
+    try {
+      await saveWine(wine);
+      reset();
+      navigation.reset({
+        index: 2,
+        routes: [
+          { name: 'Home' },
+          { name: 'MyTastings' },
+          { name: 'WineDetail', params: { wineId: wine.id } },
+        ],
+      });
+    } catch {
+      Alert.alert('Error', 'Could not update your tasting. Please try again.');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <AppHeader title="Basic Information" />
@@ -288,63 +330,10 @@ export default function BasicInfoScreen() {
           <Text style={styles.scanBannerArrow}>›</Text>
         </TouchableOpacity>
 
-        <Row label="Date:" noInfo>
-          <TouchableOpacity
-            style={[styles.input, styles.inputShort, styles.dateButton]}
-            onPress={() => setShowDatePicker(true)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.dateButtonText}>{formatDate(dateTasted)}</Text>
-          </TouchableOpacity>
-          {showDatePicker && (
-            <DateTimePicker
-              value={dateTasted}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={(event: DateTimePickerEvent, selected?: Date) => {
-                setShowDatePicker(Platform.OS === 'ios');
-                if (selected) setDateTasted(selected);
-              }}
-            />
-          )}
-        </Row>
-
+        {/* Always-visible core fields */}
         <Row label="Producer:" info={<InfoModal title="Producer" body="The winery or estate that produced the wine." />}>
           <TextInput style={styles.input} value={producer} onChangeText={setProducer} placeholder="" />
         </Row>
-
-        <Row label="Name:" info={<InfoModal title="Wine Name" body="The specific wine name or cuvée label on the bottle." />}>
-          <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="" />
-        </Row>
-
-        <Row label="Country:" info={<InfoModal title="Country" body="The country where the grapes were grown and the wine was produced." />}>
-          <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setCountryPickerOpen(true)}>
-            <Text style={country ? styles.dropdownValue : styles.dropdownPlaceholder}>{country || ''}</Text>
-            <Text style={styles.chevron}>∨</Text>
-          </TouchableOpacity>
-        </Row>
-
-        <Row label="Region:" noInfo>
-          {WINE_REGIONS[country]?.length > 0 ? (
-            <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setRegionPickerOpen(true)}>
-              <Text style={region ? styles.dropdownValue : styles.dropdownPlaceholder}>{region || ''}</Text>
-              <Text style={styles.chevron}>∨</Text>
-            </TouchableOpacity>
-          ) : (
-            <TextInput style={styles.input} value={region} onChangeText={setRegion} placeholder="" />
-          )}
-        </Row>
-
-        {isFull && (
-          <>
-            <Row label="Subregion:" noInfo>
-              <TextInput style={styles.input} value={subregion} onChangeText={setSubregion} placeholder="" />
-            </Row>
-            <Row label="Vineyard:" noInfo>
-              <TextInput style={styles.input} value={vineyard} onChangeText={setVineyard} placeholder="" />
-            </Row>
-          </>
-        )}
 
         <Row label="Grape(s):" info={<InfoModal title="Grape Varieties" body="The grape variety or varieties used to make this wine. You can add multiple grapes." />}>
           <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setGrapePickerOpen(true)}>
@@ -364,10 +353,6 @@ export default function BasicInfoScreen() {
           )}
         </Row>
 
-        <Row label="Importer:" info={<InfoModal title="Importer" body="The company that imported this wine into your country. Often found on the back label." />}>
-          <TextInput style={styles.input} value={importer} onChangeText={setImporter} placeholder="" />
-        </Row>
-
         <Row label="Vintage:" info={<InfoModal title="Vintage" body="The year the grapes were harvested. Found prominently on the label (e.g., 2019)." />}>
           <TextInput
             style={[styles.input, styles.inputShort]}
@@ -379,49 +364,122 @@ export default function BasicInfoScreen() {
           />
         </Row>
 
-        <Row label="ABV:" info={<InfoModal title="Alcohol by Volume" body="The alcohol percentage printed on the label (e.g., 13.5%). This is the actual bottled content, not a tasting impression." />}>
-          <TextInput
-            style={[styles.input, styles.inputShort]}
-            value={abv}
-            onChangeText={setAbv}
-            placeholder="e.g. 13.5%"
-            keyboardType="decimal-pad"
-          />
-        </Row>
+        {/* Expand/collapse toggle */}
+        <TouchableOpacity style={styles.expandToggle} onPress={() => setExpanded(v => !v)} activeOpacity={0.7}>
+          <Text style={styles.expandToggleText}>{expanded ? 'Hide fields ▲' : 'See all fields ▼'}</Text>
+        </TouchableOpacity>
 
-        <View style={styles.photoSection}>
-          <Text style={styles.photoSectionLabel}>Bottle Photo:</Text>
-          {photo ? (
-            <View style={styles.photoPreviewContainer}>
-              <Image source={{ uri: photo }} style={styles.photoPreview} resizeMode="contain" />
-              <View style={styles.photoPreviewActions}>
-                <TouchableOpacity style={styles.photoRetakeBtn} onPress={openCamera}>
-                  <Text style={styles.photoRetakeBtnText}>Retake</Text>
+        {/* Additional fields, hidden by default */}
+        {expanded && (
+          <>
+            <Row label="Date:" noInfo>
+              <TouchableOpacity
+                style={[styles.input, styles.inputShort, styles.dateButton]}
+                onPress={() => setShowDatePicker(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.dateButtonText}>{formatDate(dateTasted)}</Text>
+              </TouchableOpacity>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={dateTasted}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={(event: DateTimePickerEvent, selected?: Date) => {
+                    setShowDatePicker(Platform.OS === 'ios');
+                    if (selected) setDateTasted(selected);
+                  }}
+                />
+              )}
+            </Row>
+
+            <Row label="Name:" info={<InfoModal title="Wine Name" body="The specific wine name or cuvée label on the bottle." />}>
+              <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="" />
+            </Row>
+
+            <Row label="Country:" info={<InfoModal title="Country" body="The country where the grapes were grown and the wine was produced." />}>
+              <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setCountryPickerOpen(true)}>
+                <Text style={country ? styles.dropdownValue : styles.dropdownPlaceholder}>{country || ''}</Text>
+                <Text style={styles.chevron}>∨</Text>
+              </TouchableOpacity>
+            </Row>
+
+            <Row label="Region:" noInfo>
+              {WINE_REGIONS[country]?.length > 0 ? (
+                <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setRegionPickerOpen(true)}>
+                  <Text style={region ? styles.dropdownValue : styles.dropdownPlaceholder}>{region || ''}</Text>
+                  <Text style={styles.chevron}>∨</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.photoClearBtn} onPress={() => setPhoto(null)}>
-                  <Text style={styles.photoClearBtnText}>Remove</Text>
-                </TouchableOpacity>
-              </View>
+              ) : (
+                <TextInput style={styles.input} value={region} onChangeText={setRegion} placeholder="" />
+              )}
+            </Row>
+
+            {isFull && (
+              <>
+                <Row label="Subregion:" noInfo>
+                  <TextInput style={styles.input} value={subregion} onChangeText={setSubregion} placeholder="" />
+                </Row>
+                <Row label="Vineyard:" noInfo>
+                  <TextInput style={styles.input} value={vineyard} onChangeText={setVineyard} placeholder="" />
+                </Row>
+              </>
+            )}
+
+            <Row label="Importer:" info={<InfoModal title="Importer" body="The company that imported this wine into your country. Often found on the back label." />}>
+              <TextInput style={styles.input} value={importer} onChangeText={setImporter} placeholder="" />
+            </Row>
+
+            <Row label="ABV:" info={<InfoModal title="Alcohol by Volume" body="The alcohol percentage printed on the label (e.g., 13.5%). This is the actual bottled content, not a tasting impression." />}>
+              <TextInput
+                style={[styles.input, styles.inputShort]}
+                value={abv}
+                onChangeText={setAbv}
+                placeholder="e.g. 13.5%"
+                keyboardType="decimal-pad"
+              />
+            </Row>
+
+            <View style={styles.photoSection}>
+              <Text style={styles.photoSectionLabel}>Bottle Photo:</Text>
+              {photo ? (
+                <View style={styles.photoPreviewContainer}>
+                  <Image source={{ uri: photo }} style={styles.photoPreview} resizeMode="contain" />
+                  <View style={styles.photoPreviewActions}>
+                    <TouchableOpacity style={styles.photoRetakeBtn} onPress={openCamera}>
+                      <Text style={styles.photoRetakeBtnText}>Retake</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.photoClearBtn} onPress={() => setPhoto(null)}>
+                      <Text style={styles.photoClearBtnText}>Remove</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.photoPlaceholder}>
+                  <Text style={styles.photoPlaceholderIcon}>📷</Text>
+                  <View style={styles.photoPlaceholderBtns}>
+                    <TouchableOpacity style={styles.photoBtn} onPress={openCamera}>
+                      <Text style={styles.photoBtnText}>Take Photo</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.photoBtn, styles.photoBtnSecondary]} onPress={pickFromLibrary}>
+                      <Text style={[styles.photoBtnText, styles.photoBtnSecondaryText]}>Choose from Library</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
             </View>
-          ) : (
-            <View style={styles.photoPlaceholder}>
-              <Text style={styles.photoPlaceholderIcon}>📷</Text>
-              <View style={styles.photoPlaceholderBtns}>
-                <TouchableOpacity style={styles.photoBtn} onPress={openCamera}>
-                  <Text style={styles.photoBtnText}>Take Photo</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.photoBtn, styles.photoBtnSecondary]} onPress={pickFromLibrary}>
-                  <Text style={[styles.photoBtnText, styles.photoBtnSecondaryText]}>Choose from Library</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-        </View>
+          </>
+        )}
 
         <View style={{ height: 80 }} />
       </ScrollView>
 
-      <View style={styles.nextBar}>
+      <View style={[styles.nextBar, isEditing && styles.nextBarEditing]}>
+        {isEditing && (
+          <TouchableOpacity style={styles.updateBtn} onPress={handleUpdate}>
+            <Text style={styles.updateBtnText}>UPDATE</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
           <Text style={styles.nextBtnText}>NEXT &gt;</Text>
         </TouchableOpacity>
@@ -606,6 +664,17 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   grapeTagText: { fontSize: 12, color: Colors.primaryDark, fontWeight: '600' },
+  expandToggle: {
+    alignSelf: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginBottom: 18,
+  },
+  expandToggleText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
   photoSection: {
     marginTop: 8,
     marginBottom: 8,
@@ -666,9 +735,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
     paddingTop: 10,
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
     borderTopWidth: 1,
     borderTopColor: Colors.border,
+  },
+  nextBarEditing: {
+    justifyContent: 'space-between',
+  },
+  updateBtn: {
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+  },
+  updateBtnText: {
+    color: Colors.primary,
+    fontSize: 18,
+    fontWeight: '800',
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
   },
   nextBtn: {
     backgroundColor: Colors.primary,
