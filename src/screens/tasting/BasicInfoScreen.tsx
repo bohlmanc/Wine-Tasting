@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,7 @@ import { Colors } from '../../constants/colors';
 import { WINE_COUNTRIES, WINE_REGIONS, GRAPE_VARIETIES } from '../../constants/wineData';
 import { useWineTasting } from '../../context/WineTastingContext';
 import { saveWine } from '../../storage/wineStorage';
+import { loadCustomGrapes, saveCustomGrape, deleteCustomGrape } from '../../storage/customGrapesStorage';
 import { Wine } from '../../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -94,13 +95,22 @@ function GrapePickerModal({
 }) {
   const [search, setSearch] = useState('');
   const [pending, setPending] = useState<string[]>(selected);
+  const [customGrapes, setCustomGrapes] = useState<string[]>([]);
 
   useEffect(() => {
     if (visible) {
       setPending([...selected]);
       setSearch('');
+      loadCustomGrapes().then(setCustomGrapes);
     }
   }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const allGrapes = useMemo(() => {
+    const extras = customGrapes.filter(g => !GRAPE_VARIETIES.includes(g));
+    // Include any selected grapes that were deleted from the custom list so they remain visible/deselectable
+    const orphaned = pending.filter(g => !GRAPE_VARIETIES.includes(g) && !extras.includes(g));
+    return [...GRAPE_VARIETIES, ...extras, ...orphaned].sort((a, b) => a.localeCompare(b));
+  }, [customGrapes, pending]);
 
   const toggle = (grape: string) => {
     setPending(prev =>
@@ -108,26 +118,43 @@ function GrapePickerModal({
     );
   };
 
+  const handleAddCustom = async () => {
+    const grape = search.trim();
+    if (!grape) return;
+    await saveCustomGrape(grape);
+    setCustomGrapes(prev => prev.includes(grape) ? prev : [...prev, grape]);
+    setPending(prev => prev.includes(grape) ? prev : [...prev, grape]);
+    setSearch('');
+  };
+
+  const handleDeleteCustom = async (grape: string) => {
+    await deleteCustomGrape(grape);
+    setCustomGrapes(prev => prev.filter(g => g !== grape));
+    setPending(prev => prev.filter(g => g !== grape));
+  };
+
   const query = search.trim().toLowerCase();
-  let displayData = GRAPE_VARIETIES as string[];
+  let displayData = allGrapes;
   let showFuzzyHint = false;
 
   if (query.length > 0) {
-    const exact = GRAPE_VARIETIES.filter(g => g.toLowerCase().includes(query));
+    const exact = allGrapes.filter(g => g.toLowerCase().includes(query));
     if (exact.length > 0) {
       displayData = exact;
     } else {
       const threshold = Math.min(3, Math.floor(query.length / 3) + 1);
-      const fuzzy = GRAPE_VARIETIES.filter(g =>
+      const fuzzy = allGrapes.filter(g =>
         g.toLowerCase().split(/[\s/]+/).some(word => {
           if (Math.abs(word.length - query.length) > 3) return false;
           return levenshtein(query, word) <= threshold;
         })
       );
-      displayData = fuzzy.length > 0 ? fuzzy : GRAPE_VARIETIES;
+      displayData = fuzzy.length > 0 ? fuzzy : allGrapes;
       showFuzzyHint = true;
     }
   }
+
+  const canAddCustom = query.length > 0 && !allGrapes.some(g => g.toLowerCase() === query);
 
   return (
     <Modal visible={visible} transparent animationType="slide">
@@ -160,12 +187,18 @@ function GrapePickerModal({
           {showFuzzyHint && (
             <Text style={styles.fuzzyHint}>No exact match — showing similar options</Text>
           )}
+          {canAddCustom && (
+            <TouchableOpacity style={styles.addCustomGrape} onPress={handleAddCustom}>
+              <Text style={styles.addCustomGrapeText}>+ Add "{search.trim()}" as new grape</Text>
+            </TouchableOpacity>
+          )}
           <FlatList
             data={displayData}
             keyExtractor={i => i}
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => {
               const isSelected = pending.includes(item);
+              const isCustom = !GRAPE_VARIETIES.includes(item);
               return (
                 <TouchableOpacity
                   style={[styles.pickerItem, isSelected && styles.grapeItemSelected]}
@@ -175,6 +208,15 @@ function GrapePickerModal({
                     {item}
                   </Text>
                   {isSelected && <Text style={styles.grapeCheckmark}>✓</Text>}
+                  {isCustom && (
+                    <TouchableOpacity
+                      onPress={() => handleDeleteCustom(item)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      style={styles.grapeDeleteBtn}
+                    >
+                      <Text style={styles.grapeDeleteText}>✕</Text>
+                    </TouchableOpacity>
+                  )}
                 </TouchableOpacity>
               );
             }}
@@ -257,7 +299,7 @@ export default function BasicInfoScreen() {
 
   const pickFromLibrary = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       quality: 0.7,
     });
     if (!result.canceled) setPhoto(result.assets[0].uri);
@@ -267,7 +309,7 @@ export default function BasicInfoScreen() {
     if (!cameraRef.current) return;
     try {
       const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
-      setPhoto(photo.uri);
+      setPhoto(photo!.uri);
       setCameraOpen(false);
     } catch (e: any) {
       Alert.alert('Camera Error', e?.message ?? 'Could not capture photo.');
@@ -415,7 +457,7 @@ export default function BasicInfoScreen() {
                   value={dateTasted}
                   mode="date"
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={(event: DateTimePickerEvent, selected?: Date) => {
+                  onChange={(_event: DateTimePickerEvent, selected?: Date) => {
                     setShowDatePicker(Platform.OS === 'ios');
                     if (selected) setDateTasted(selected);
                   }}
@@ -656,6 +698,27 @@ const styles = StyleSheet.create({
   grapeCheckmark: {
     fontSize: 16,
     color: Colors.primaryDark,
+    fontWeight: '700',
+  },
+  addCustomGrape: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#f0f8e8',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+  },
+  addCustomGrapeText: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  grapeDeleteBtn: {
+    marginLeft: 8,
+    paddingHorizontal: 4,
+  },
+  grapeDeleteText: {
+    fontSize: 14,
+    color: Colors.disliked,
     fontWeight: '700',
   },
   grapeTag: {

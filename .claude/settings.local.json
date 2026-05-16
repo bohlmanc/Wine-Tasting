@@ -21,7 +21,9 @@
       "PowerShell(Write-Output \"ANDROID_HOME=$env:ANDROID_HOME\")",
       "PowerShell(Test-Path \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\"; $env:LOCALAPPDATA)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\codyb\\\\Desktop\\\\Claude\\\\Wine App\\\\src\\\\screens\\\\tasting\" -ErrorAction SilentlyContinue)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "WebFetch(domain:www.corkandfizz.com)",
+      "WebFetch(domain:static1.squarespace.com)"
     ]
   }
 }
