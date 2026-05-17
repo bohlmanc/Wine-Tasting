@@ -153,3 +153,6 @@ ios/Pods/
 ios/build/
 ios/DerivedData/
 *.xcuserstate
+
+# Git Access Token
+.access
