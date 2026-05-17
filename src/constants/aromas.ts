@@ -23,3 +23,11 @@ export const SPICE_ITEMS = ['Black Pepper', 'White Pepper', 'Cinnamon', 'Clove',
 export const OUTDOOR_ITEMS = ['Mushroom', 'Forest Floor', 'Earth', 'Tobacco', 'Leather', 'Smoke', 'Wet Stone', 'Gravel', 'Barnyard', 'Truffle'];
 
 export const OTHER_ITEMS = ['Oak', 'Toast', 'Butter', 'Coffee', 'Dark Chocolate', 'Cedar', 'Flint', 'Honey', 'Cream', 'Brioche', 'Petrol', 'Mineral'];
+
+export const ALL_PREDEFINED_AROMAS = new Set([
+  ...Object.values(FRUIT_ITEMS).flat(),
+  ...HERB_ITEMS,
+  ...SPICE_ITEMS,
+  ...OUTDOOR_ITEMS,
+  ...OTHER_ITEMS,
+]);

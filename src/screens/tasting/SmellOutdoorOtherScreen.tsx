@@ -20,8 +20,6 @@ import { useWineTasting } from '../../context/WineTastingContext';
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'SmellOutdoorOther'>;
 
-const ALL_PREDEFINED = new Set([...OUTDOOR_ITEMS, ...OTHER_ITEMS]);
-
 export default function SmellOutdoorOtherScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
@@ -31,10 +29,9 @@ export default function SmellOutdoorOtherScreen() {
   const items = category === 'Outdoor' ? OUTDOOR_ITEMS : OTHER_ITEMS;
   const color = category === 'Outdoor' ? Colors.outdoorColor : Colors.otherColor;
   const aromas = tasting.aromas ?? [];
+  const categoryCustomAromas = tasting.customAromas?.[category] ?? [];
 
   const [customInput, setCustomInput] = useState('');
-
-  const customAromas = aromas.filter(a => !ALL_PREDEFINED.has(a));
 
   const isSelected = (item: string) => aromas.includes(item);
 
@@ -49,9 +46,21 @@ export default function SmellOutdoorOtherScreen() {
   const addCustom = () => {
     const trimmed = customInput.trim();
     if (trimmed && !aromas.includes(trimmed)) {
-      update({ aromas: [...aromas, trimmed] });
+      const prevCustom = tasting.customAromas ?? {};
+      update({
+        aromas: [...aromas, trimmed],
+        customAromas: { ...prevCustom, [category]: [...(prevCustom[category] ?? []), trimmed] },
+      });
     }
     setCustomInput('');
+  };
+
+  const removeCustom = (item: string) => {
+    const prevCustom = tasting.customAromas ?? {};
+    update({
+      aromas: aromas.filter(a => a !== item),
+      customAromas: { ...prevCustom, [category]: (prevCustom[category] ?? []).filter(a => a !== item) },
+    });
   };
 
   return (
@@ -83,15 +92,15 @@ export default function SmellOutdoorOtherScreen() {
           })}
         </View>
 
-        {customAromas.length > 0 && (
+        {categoryCustomAromas.length > 0 && (
           <View style={styles.customSection}>
             <Text style={[styles.customLabel, { color }]}>Custom aromas:</Text>
             <View style={styles.grid}>
-              {customAromas.map(item => (
+              {categoryCustomAromas.map(item => (
                 <TouchableOpacity
                   key={item}
                   style={[styles.chip, styles.customChip, { borderColor: color, backgroundColor: color }]}
-                  onPress={() => update({ aromas: aromas.filter(a => a !== item) })}
+                  onPress={() => removeCustom(item)}
                   activeOpacity={0.8}
                 >
                   <Text style={[styles.chipText, { color: Colors.white }]}>

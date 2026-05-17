@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Platform,
   ScrollView,
+  KeyboardAvoidingView,
   Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -57,6 +58,10 @@ export default function ThinkScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <AppHeader title="Step 4: Think" />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.topRow}>
           <InfoModal
@@ -144,6 +149,7 @@ export default function ThinkScreen() {
           <Text style={styles.doneBtnText}>DONE — SAVE WINE</Text>
         </TouchableOpacity>
       </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

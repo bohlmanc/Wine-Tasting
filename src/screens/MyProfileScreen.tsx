@@ -10,6 +10,9 @@ import {
   Alert,
   Linking,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/types';
 
 async function openInstagram() {
   const appUrl = 'instagram://user?username=corkandfizz';
@@ -27,13 +30,17 @@ async function openInstagram() {
 import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
 import { loadWines, deleteWine } from '../storage/wineStorage';
+import { loadCellarBottles } from '../storage/cellarStorage';
 import { Wine } from '../types';
 
 export default function MyProfileScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [wines, setWines] = useState<Wine[]>([]);
+  const [cellarCount, setCellarCount] = useState(0);
 
   useEffect(() => {
     loadWines().then(setWines);
+    loadCellarBottles().then(b => setCellarCount(b.length));
   }, []);
 
   const likedCount = wines.filter(w => w.liked === true).length;
@@ -92,9 +99,12 @@ export default function MyProfileScreen() {
 
         {/* Stats */}
         <View style={styles.statsRow}>
-          <StatBox label="Total Wines" value={String(wines.length)} />
+          <StatBox label="Total Wines" value={String(wines.length)} onPress={() => navigation.navigate('MyTastings')} />
           <StatBox label="Liked" value={String(likedCount)} color={Colors.liked} />
           <StatBox label="Avg Rating" value={avgRating ?? '—'} />
+        </View>
+        <View style={[styles.statsRow, { marginBottom: 16 }]}>
+          <StatBox label="Cellared Wines" value={String(cellarCount)} onPress={() => navigation.navigate('MyCellar')} />
         </View>
 
         {/* Style breakdown */}
@@ -159,12 +169,12 @@ export default function MyProfileScreen() {
   );
 }
 
-function StatBox({ label, value, color }: { label: string; value: string; color?: string }) {
+function StatBox({ label, value, color, onPress }: { label: string; value: string; color?: string; onPress?: () => void }) {
   return (
-    <View style={styles.statBox}>
+    <TouchableOpacity style={styles.statBox} onPress={onPress} disabled={!onPress}>
       <Text style={[styles.statValue, color ? { color } : undefined]}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 

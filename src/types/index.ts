@@ -30,6 +30,7 @@ export interface Wine {
 
   // Smell
   aromas: string[];
+  customAromas?: Record<string, string[]>;
 
   // Taste
   sweetness: string;

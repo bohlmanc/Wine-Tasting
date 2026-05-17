@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   Platform,
   ScrollView,
+  TextInput,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -37,6 +38,8 @@ export default function SmellFruitDetailScreen() {
   const color = FRUIT_TYPE_COLORS[fruitType] ?? Colors.fruitColor;
   const items = FRUIT_ITEMS[fruitType] ?? [];
   const aromas = tasting.aromas ?? [];
+  const categoryCustomAromas = tasting.customAromas?.[fruitType] ?? [];
+  const [customInput, setCustomInput] = useState('');
 
   const isSelected = (item: string) => aromas.includes(item);
 
@@ -48,10 +51,30 @@ export default function SmellFruitDetailScreen() {
     }
   };
 
+  const addCustom = () => {
+    const trimmed = customInput.trim();
+    if (trimmed && !aromas.includes(trimmed)) {
+      const prevCustom = tasting.customAromas ?? {};
+      update({
+        aromas: [...aromas, trimmed],
+        customAromas: { ...prevCustom, [fruitType]: [...(prevCustom[fruitType] ?? []), trimmed] },
+      });
+    }
+    setCustomInput('');
+  };
+
+  const removeCustom = (item: string) => {
+    const prevCustom = tasting.customAromas ?? {};
+    update({
+      aromas: aromas.filter(a => a !== item),
+      customAromas: { ...prevCustom, [fruitType]: (prevCustom[fruitType] ?? []).filter(a => a !== item) },
+    });
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <AppHeader title="Step 2: Smell" />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={[styles.heading, { color }]}>{fruitType.toUpperCase()}</Text>
         <Text style={styles.subheading}>Select all that apply:</Text>
 
@@ -75,6 +98,43 @@ export default function SmellFruitDetailScreen() {
               </TouchableOpacity>
             );
           })}
+        </View>
+
+        {categoryCustomAromas.length > 0 && (
+          <View style={styles.customSection}>
+            <Text style={[styles.customLabel, { color }]}>Custom aromas:</Text>
+            <View style={styles.grid}>
+              {categoryCustomAromas.map(item => (
+                <TouchableOpacity
+                  key={item}
+                  style={[styles.chip, { borderColor: color, backgroundColor: color }]}
+                  onPress={() => removeCustom(item)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.chipText, { color: Colors.white }]}>{item}{'  ✕'}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+
+        <View style={styles.addRow}>
+          <TextInput
+            style={[styles.customInput, { borderColor: color }]}
+            placeholder="Add custom aroma…"
+            placeholderTextColor={Colors.textMuted}
+            value={customInput}
+            onChangeText={setCustomInput}
+            onSubmitEditing={addCustom}
+            returnKeyType="done"
+          />
+          <TouchableOpacity
+            style={[styles.addBtn, { backgroundColor: color }]}
+            onPress={addCustom}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.addBtnText}>Add</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -127,6 +187,40 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 14,
     fontWeight: '700',
+  },
+  customSection: {
+    marginTop: 20,
+  },
+  customLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  addRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    gap: 10,
+  },
+  customInput: {
+    flex: 1,
+    borderWidth: 2,
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: Colors.text,
+    backgroundColor: Colors.background,
+  },
+  addBtn: {
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  addBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.white,
   },
   bottomBar: {
     backgroundColor: Colors.background,

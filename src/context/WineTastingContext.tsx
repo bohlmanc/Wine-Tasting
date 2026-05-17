@@ -30,6 +30,7 @@ const initialState: TastingState = {
   colorIntensity: '',
   clarity: '',
   aromas: [],
+  customAromas: {},
   sweetness: '',
   acidity: '',
   tannin: '',

@@ -333,6 +333,9 @@ function WineCard({
           {wine.vintage ? <Text style={styles.metaText}>{wine.vintage}</Text> : null}
           {wine.country ? <Text style={styles.metaText}>{wine.country}</Text> : null}
         </View>
+        {wine.grapes && wine.grapes.length > 0 && (
+          <Text style={styles.cardGrapes} numberOfLines={1}>{wine.grapes.join(', ')}</Text>
+        )}
         {wine.rating != null && (
           <Text style={styles.cardRating}>{'★'.repeat(Math.round(wine.rating / 2))}{'☆'.repeat(5 - Math.round(wine.rating / 2))} {wine.rating}/10</Text>
         )}
@@ -512,6 +515,7 @@ const styles = StyleSheet.create({
   badge: { borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
   badgeText: { fontSize: 10, fontWeight: '800', color: Colors.white },
   metaText: { fontSize: 12, color: Colors.textMuted },
+  cardGrapes: { fontSize: 12, color: Colors.textMuted, fontStyle: 'italic', marginBottom: 2 },
   cardRating: { fontSize: 12, color: Colors.textMuted, marginBottom: 2 },
   cardDate: { fontSize: 11, color: Colors.textMuted },
   cardRight: { alignItems: 'center', justifyContent: 'space-between', paddingLeft: 8 },
