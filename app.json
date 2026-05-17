@@ -16,7 +16,8 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.corkfizz.winepocketpal"
+      "bundleIdentifier": "com.corkfizz.winepocketpal",
+      "deploymentTarget": "15.5"
     },
     "android": {
       "adaptiveIcon": {

@@ -147,3 +147,9 @@ vite.config.ts.timestamp-*
 
 # API keys — never commit
 src/config/apiConfig.ts
+
+# iOS generated/build artifacts
+ios/Pods/
+ios/build/
+ios/DerivedData/
+*.xcuserstate

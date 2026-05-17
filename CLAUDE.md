@@ -40,5 +40,8 @@ On a physical Android device running via `expo-dev-client`, `launchCameraAsync` 
 ### No config plugin needed for ML Kit
 `@react-native-ml-kit/text-recognition` uses React Native autolinking — adding it to `app.json` plugins causes a Node.js type-stripping error because the package has no config plugin. Leave it out of plugins; autolinking handles it during the local build.
 
+### iOS builds on Xcode 26 require several compatibility patches
+Xcode 26's stricter Clang and unquoted-path bugs in React Native's build scripts cause multiple distinct failures when building for iOS. Fixes are applied via `ios/Podfile` post_install hooks and `patch-package`. **If iOS build fails, update [docs/ios-xcode26-build-issues.md](docs/ios-xcode26-build-issues.md) with any new findings before closing the session.** See that file for full diagnosis, all patches applied so far, and known candidates for the next failure.
+
 ### Android local builds on Windows require patched node_modules
 `npx expo run:android` hangs at "Evaluating settings" on Windows due to pipe buffer deadlocks in two Gradle scripts. Fixes are applied via `patch-package` and survive `npm install` automatically. See **[docs/gradle-windows-build.md](docs/gradle-windows-build.md)** for full diagnosis, what was patched, and what to do if `android/` is regenerated.

@@ -29,6 +29,53 @@ npx expo install expo-dev-client
 
 This builds the app and deploys it directly to the connected device via Android Studio's toolchain.
 
+## Building locally on iOS
+
+### Prerequisites
+- Xcode installed from the Mac App Store (with at least one iOS runtime downloaded)
+- Xcode command line tools: `xcode-select --install`
+- Accept the Xcode license (first time only): `sudo xcodebuild -license accept`
+
+### Run on the iOS Simulator
+
+No Apple Developer account needed for the simulator. Once Xcode and a runtime are installed, just run:
+
+```
+npx expo run:ios
+```
+
+This compiles the native app and launches it in the iOS Simulator automatically. On first run it will take a few minutes to build; subsequent runs are faster thanks to incremental compilation.
+
+To target a specific simulator (e.g. iPhone 16 Pro):
+
+```
+npx expo run:ios --simulator "iPhone 16 Pro"
+```
+
+List available simulators with:
+
+```
+xcrun simctl list devices available
+```
+
+### Run on a physical iOS device
+
+You need an Apple Developer account (free tier works for sideloading, paid for distribution).
+
+1. Connect your iPhone via USB and trust the Mac on the device.
+2. Open Xcode once → **Settings → Accounts** → add your Apple ID → Xcode will create a personal signing certificate automatically.
+3. Then run:
+
+```
+npx expo run:ios --device
+```
+
+Expo will prompt you to select your connected device and handle signing with your personal team. If Xcode complains about a provisioning profile, open the generated `ios/` project in Xcode (`open ios/WinePocketPal.xcworkspace`), select your target → **Signing & Capabilities**, and set your Team there.
+
+### Offline (ML Kit) and camera features
+
+ML Kit text recognition and the camera work fine in local iOS builds — they are native modules and will not work in Expo Go. Always use `npx expo run:ios` (not Expo Go) to test scanning features.
+
 ## Launching on the App Store & Google Play
 
 ### Prerequisites
