@@ -23,9 +23,13 @@ import WineDetailScreen from '../screens/WineDetailScreen';
 import WineTastingGuideScreen from '../screens/WineTastingGuideScreen';
 import MyProfileScreen from '../screens/MyProfileScreen';
 import ScanLabelScreen from '../screens/ScanLabelScreen';
-import MyCellarScreen from '../screens/MyCellarScreen';
-import AddCellarBottleScreen from '../screens/AddCellarBottleScreen';
-import CellarBottleDetailScreen from '../screens/CellarBottleDetailScreen';
+import WineryCheckInScreen from '../screens/WineryCheckInScreen';
+import WinerySearchScreen from '../screens/WinerySearchScreen';
+import WineryDetailScreen from '../screens/WineryDetailScreen';
+import TastingFlightDetailScreen from '../screens/TastingFlightDetailScreen';
+import GuidedSessionScreen from '../screens/GuidedSessionScreen';
+import MyFlightsScreen from '../screens/MyFlightsScreen';
+import CompletedFlightDetailScreen from '../screens/CompletedFlightDetailScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -56,9 +60,13 @@ export default function AppNavigator() {
         <Stack.Screen name="WineDetail" component={WineDetailScreen} />
         <Stack.Screen name="WineTastingGuide" component={WineTastingGuideScreen} />
         <Stack.Screen name="MyProfile" component={MyProfileScreen} />
-        <Stack.Screen name="MyCellar" component={MyCellarScreen} />
-        <Stack.Screen name="AddCellarBottle" component={AddCellarBottleScreen} />
-        <Stack.Screen name="CellarBottleDetail" component={CellarBottleDetailScreen} />
+        <Stack.Screen name="WineryCheckIn" component={WineryCheckInScreen} />
+        <Stack.Screen name="WinerySearch" component={WinerySearchScreen} />
+        <Stack.Screen name="WineryDetail" component={WineryDetailScreen} />
+        <Stack.Screen name="TastingFlightDetail" component={TastingFlightDetailScreen} />
+        <Stack.Screen name="GuidedSession" component={GuidedSessionScreen} />
+        <Stack.Screen name="MyFlights" component={MyFlightsScreen} />
+        <Stack.Screen name="CompletedFlightDetail" component={CompletedFlightDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

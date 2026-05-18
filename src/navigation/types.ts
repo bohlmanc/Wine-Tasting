@@ -1,7 +1,7 @@
 export type RootStackParamList = {
   Home: undefined;
   AddWineType: undefined;
-  BasicInfo: undefined;
+  BasicInfo: { guidedSessionId?: string; flightWineIndex?: number } | undefined;
   ScanLabel: undefined;
   WineStyle: undefined;
   LookColor: undefined;
@@ -13,13 +13,17 @@ export type RootStackParamList = {
   SmellHerbSpiceDetail: { category: 'Herbs' | 'Spices' };
   SmellOutdoorOther: { category: 'Outdoor' | 'Other' };
   Taste: undefined;
-  Think: undefined;
+  Think: { guidedSessionId?: string } | undefined;
   MyTastings: undefined;
   TastingCalendar: undefined;
   WineDetail: { wineId: string };
   WineTastingGuide: undefined;
   MyProfile: undefined;
-  MyCellar: undefined;
-  AddCellarBottle: { bottleId?: string };
-  CellarBottleDetail: { bottleId: string };
+  WineryCheckIn: undefined;
+  WinerySearch: undefined;
+  WineryDetail: { wineryId: string };
+  TastingFlightDetail: { flightId: string; wineryId: string };
+  GuidedSession: { sessionId: string };
+  MyFlights: undefined;
+  CompletedFlightDetail: { sessionId: string };
 };

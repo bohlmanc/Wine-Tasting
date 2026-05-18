@@ -30,21 +30,16 @@ async function openInstagram() {
 import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
 import { loadWines, deleteWine } from '../storage/wineStorage';
-import { loadCellarBottles } from '../storage/cellarStorage';
 import { Wine } from '../types';
 
 export default function MyProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [wines, setWines] = useState<Wine[]>([]);
-  const [cellarCount, setCellarCount] = useState(0);
-
   useEffect(() => {
     loadWines().then(setWines);
-    loadCellarBottles().then(b => setCellarCount(b.length));
   }, []);
 
   const likedCount = wines.filter(w => w.liked === true).length;
-  const dislikedCount = wines.filter(w => w.liked === false).length;
   const avgRating =
     wines.filter(w => w.rating != null).length > 0
       ? (wines.reduce((sum, w) => sum + (w.rating ?? 0), 0) / wines.filter(w => w.rating != null).length).toFixed(1)
@@ -95,6 +90,14 @@ export default function MyProfileScreen() {
           <TouchableOpacity onPress={() => Linking.openURL('https://www.corkandfizz.com')}>
             <Text style={[styles.appSubtitle, styles.link]}>Created by Cork & Fizz, LLC</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.calendarBtn}
+            onPress={() => navigation.navigate('TastingCalendar')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.calendarBtnText}>Tasting Calendar</Text>
+            <Text style={styles.calendarBtnArrow}>›</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Stats */}
@@ -103,10 +106,6 @@ export default function MyProfileScreen() {
           <StatBox label="Liked" value={String(likedCount)} color={Colors.liked} />
           <StatBox label="Avg Rating" value={avgRating ?? '—'} />
         </View>
-        <View style={[styles.statsRow, { marginBottom: 16 }]}>
-          <StatBox label="Cellared Wines" value={String(cellarCount)} onPress={() => navigation.navigate('MyCellar')} />
-        </View>
-
         {/* Style breakdown */}
         {Object.keys(styleBreakdown).length > 0 && (
           <Section title="By Style">
@@ -277,4 +276,21 @@ const styles = StyleSheet.create({
   footerText: { fontSize: 12, color: Colors.textMuted },
   footerRow: { flexDirection: 'row', alignItems: 'center' },
   link: { textDecorationLine: 'underline' },
+  calendarBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.primary,
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginTop: 20,
+  },
+  calendarBtnText: {
+    fontSize: 15,
+    fontWeight: '800',
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    color: Colors.white,
+  },
+  calendarBtnArrow: { fontSize: 22, color: Colors.white, fontWeight: '300' },
 });

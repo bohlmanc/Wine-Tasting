@@ -1,18 +1,24 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { Wine, TastingType, WineStyle } from '../types';
+import { Wine, TastingType } from '../types';
 
-type TastingState = Partial<Wine> & { tastingType: TastingType; scanApplied: boolean };
+type TastingState = Partial<Wine> & {
+  tastingType: TastingType;
+  scanApplied: boolean;
+  guidedSessionId: string | null;
+};
 
 type TastingAction =
   | { type: 'SET_TASTING_TYPE'; payload: TastingType }
   | { type: 'UPDATE'; payload: Partial<Wine> }
   | { type: 'LOAD_WINE'; payload: Wine }
   | { type: 'RESET' }
-  | { type: 'SET_SCAN_APPLIED'; payload: boolean };
+  | { type: 'SET_SCAN_APPLIED'; payload: boolean }
+  | { type: 'SET_GUIDED_SESSION_ID'; payload: string | null };
 
 const initialState: TastingState = {
   tastingType: 'full',
   scanApplied: false,
+  guidedSessionId: null,
   dateTasted: new Date().toLocaleDateString('en-US'),
   producer: '',
   name: '',
@@ -49,11 +55,13 @@ function reducer(state: TastingState, action: TastingAction): TastingState {
     case 'UPDATE':
       return { ...state, ...action.payload };
     case 'LOAD_WINE':
-      return { ...action.payload, scanApplied: false };
+      return { ...action.payload, scanApplied: false, guidedSessionId: null };
     case 'RESET':
       return { ...initialState };
     case 'SET_SCAN_APPLIED':
       return { ...state, scanApplied: action.payload };
+    case 'SET_GUIDED_SESSION_ID':
+      return { ...state, guidedSessionId: action.payload };
     default:
       return state;
   }
@@ -66,6 +74,7 @@ interface WineTastingContextValue {
   loadWine: (wine: Wine) => void;
   reset: () => void;
   setScanApplied: (v: boolean) => void;
+  setGuidedSessionId: (id: string | null) => void;
 }
 
 const WineTastingContext = createContext<WineTastingContextValue | null>(null);
@@ -82,9 +91,13 @@ export function WineTastingProvider({ children }: { children: ReactNode }) {
   const reset = () => dispatch({ type: 'RESET' });
   const setScanApplied = (v: boolean) =>
     dispatch({ type: 'SET_SCAN_APPLIED', payload: v });
+  const setGuidedSessionId = (id: string | null) =>
+    dispatch({ type: 'SET_GUIDED_SESSION_ID', payload: id });
 
   return (
-    <WineTastingContext.Provider value={{ tasting, setTastingType, update, loadWine, reset, setScanApplied }}>
+    <WineTastingContext.Provider
+      value={{ tasting, setTastingType, update, loadWine, reset, setScanApplied, setGuidedSessionId }}
+    >
       {children}
     </WineTastingContext.Provider>
   );

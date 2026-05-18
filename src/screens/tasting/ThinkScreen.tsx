@@ -19,6 +19,7 @@ import InfoModal from '../../components/InfoModal';
 import { Colors } from '../../constants/colors';
 import { useWineTasting } from '../../context/WineTastingContext';
 import { saveWine } from '../../storage/wineStorage';
+import { loadGuidedSession, saveGuidedSession } from '../../storage/guidedSessionStorage';
 import { Wine } from '../../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -30,6 +31,7 @@ const EMOJI_REACTIONS = ['😍', '😋', '🤔', '😐', '😬', '🤢'];
 export default function ThinkScreen() {
   const navigation = useNavigation<Nav>();
   const { tasting, reset } = useWineTasting();
+  const guidedSessionId = tasting.guidedSessionId ?? null;
 
   const [liked, setLiked] = useState<boolean | null>(tasting.liked ?? null);
   const [rating, setRating] = useState<number | null>(tasting.rating ?? null);
@@ -47,6 +49,30 @@ export default function ThinkScreen() {
     };
 
     try {
+      if (guidedSessionId) {
+        const session = await loadGuidedSession(guidedSessionId);
+        if (session) {
+          await saveWine({
+            ...wine,
+            guidedSessionId: session.id,
+            flightId: session.flightId,
+            flightName: session.flightName,
+            wineryId: session.wineryId,
+            wineryName: session.wineryName,
+          });
+          const updatedIds = [...session.completedWineIds];
+          updatedIds[session.currentIndex] = wine.id;
+          await saveGuidedSession({
+            ...session,
+            completedWineIds: updatedIds,
+            currentIndex: session.currentIndex + 1,
+          });
+          reset();
+          navigation.navigate('GuidedSession', { sessionId: guidedSessionId });
+          return;
+        }
+      }
+
       await saveWine(wine);
       reset();
       navigation.reset({ index: 1, routes: [{ name: 'Home' }, { name: 'MyTastings' }] });

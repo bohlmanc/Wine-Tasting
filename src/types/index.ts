@@ -44,28 +44,64 @@ export interface Wine {
   liked: boolean | null;
   rating: number | null;
   notes: string;
+
+  // Guided session provenance (set when wine is saved from a flight)
+  guidedSessionId?: string;
+  flightId?: string;
+  flightName?: string;
+  wineryId?: string;
+  wineryName?: string;
 }
 
 export type PartialWine = Partial<Wine> & { id: string; tastingType: TastingType };
 
-export interface CellarBottle {
+export interface Winery {
   id: string;
-  createdAt: string;
+  name: string;
+  slug: string;
+  description: string;
+  region: string;
+  country: string;
+  logoUrl: string | null;
+}
 
+export interface TastingFlight {
+  id: string;
+  wineryId: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+  sortOrder: number;
+  wines: FlightWine[];
+}
+
+export interface FlightWine {
+  id: string;
+  position: number;
   name: string;
   producer: string;
   vintage: string;
-  country: string;
-  region: string;
-  grapes: string[];
   style: WineStyle | null;
+  grapes: string[];
+  region: string;
+  country: string;
   abv: string;
-  photo: string | null;
+  description: string;
+  imageUrl: string | null;
+}
 
-  quantity: number;
-  purchaseDate: string;
-  purchasePrice: string;
-  drinkFrom: string;
-  drinkBy: string;
-  notes: string;
+export interface CompletedFlightSession {
+  session: GuidedSession;
+  flight: TastingFlight;
+}
+
+export interface GuidedSession {
+  id: string;
+  wineryId: string;
+  flightId: string;
+  flightName: string;
+  wineryName: string;
+  startedAt: string;
+  currentIndex: number;
+  completedWineIds: (string | null)[];
 }

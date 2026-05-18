@@ -107,6 +107,19 @@ export default function WineDetailScreen() {
           )}
           {wine.dateTasted ? <Text style={styles.dateTasted}>Tasted: {wine.dateTasted}</Text> : null}
 
+          {wine.guidedSessionId && wine.flightName ? (
+            <TouchableOpacity
+              style={styles.flightBadge}
+              onPress={() => navigation.navigate('CompletedFlightDetail', { sessionId: wine.guidedSessionId! })}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.flightBadgeText}>
+                🍾 {wine.wineryName ? `${wine.wineryName} · ` : ''}{wine.flightName}
+              </Text>
+              <Text style={styles.flightBadgeArrow}>›</Text>
+            </TouchableOpacity>
+          ) : null}
+
           {/* Rating & Liked */}
           <View style={styles.ratingRow}>
             {wine.liked === true && <Text style={styles.likedBadge}>👍 Liked</Text>}
@@ -245,7 +258,27 @@ const styles = StyleSheet.create({
   metaItem: { fontSize: 13, color: Colors.textMuted },
   grapes: { fontSize: 13, color: Colors.textMuted, textAlign: 'center', marginBottom: 6 },
   dateTasted: { fontSize: 12, color: Colors.textMuted, marginBottom: 10 },
-  ratingRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  flightBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F0E8',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginTop: 6,
+    gap: 4,
+  },
+  flightBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#8B6914',
+    flex: 1,
+  },
+  flightBadgeArrow: {
+    fontSize: 18,
+    color: '#8B6914',
+  },
+  ratingRow: { flexDirection: 'row', gap: 12, alignItems: 'center', marginTop: 8 },
   likedBadge: {
     fontSize: 14,
     fontWeight: '700',

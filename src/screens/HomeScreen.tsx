@@ -62,22 +62,6 @@ function HomeContent() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.btn, { backgroundColor: Colors.btnCalendar }]}
-          onPress={() => navigation.navigate('TastingCalendar')}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.btnText}>Tasting Calendar</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.btn, { backgroundColor: Colors.btnCellar }]}
-          onPress={() => navigation.navigate('MyCellar')}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.btnText}>My Cellar</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
           style={[styles.btn, { backgroundColor: Colors.btnGuide }]}
           onPress={() => navigation.navigate('WineTastingGuide')}
           activeOpacity={0.85}
@@ -91,6 +75,22 @@ function HomeContent() {
           activeOpacity={0.85}
         >
           <Text style={styles.btnText}>My Profile</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.btn, { backgroundColor: Colors.btnWinery }]}
+          onPress={() => navigation.navigate('WineryCheckIn')}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.btnText}>Visit a Winery</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.btn, { backgroundColor: '#5B6E5B' }]}
+          onPress={() => navigation.navigate('MyFlights')}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.btnText}>My Flights</Text>
         </TouchableOpacity>
       </View>
 

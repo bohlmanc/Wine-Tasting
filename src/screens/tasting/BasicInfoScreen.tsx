@@ -14,7 +14,7 @@ import {
   Alert,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import { CameraView, Camera } from 'expo-camera';
@@ -229,7 +229,13 @@ function GrapePickerModal({
 
 export default function BasicInfoScreen() {
   const navigation = useNavigation<Nav>();
-  const { tasting, update, reset, setScanApplied } = useWineTasting();
+  const route = useRoute<RouteProp<RootStackParamList, 'BasicInfo'>>();
+  const { tasting, update, reset, setScanApplied, setGuidedSessionId } = useWineTasting();
+
+  useEffect(() => {
+    const sessionId = route.params?.guidedSessionId ?? null;
+    setGuidedSessionId(sessionId);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const isFull = tasting.tastingType === 'full';
   const isEditing = Boolean(tasting.id);
 
