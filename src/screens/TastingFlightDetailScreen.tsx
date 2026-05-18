@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,16 +8,24 @@ import {
   SafeAreaView,
   Platform,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
 import { getFlight, getWinery } from '../services/wineryService';
-import { createGuidedSession, saveGuidedSession, saveFlightForSession } from '../storage/guidedSessionStorage';
-import { TastingFlight, Winery, FlightWine } from '../types';
+import {
+  createGuidedSession,
+  saveGuidedSession,
+  saveFlightForSession,
+  loadActiveSessionForFlight,
+  archiveFlightSession,
+  clearGuidedSession,
+} from '../storage/guidedSessionStorage';
+import { loadWines } from '../storage/wineStorage';
+import { TastingFlight, Winery, FlightWine, GuidedSession, Wine } from '../types';
+import { useWineTasting } from '../context/WineTastingContext';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'TastingFlightDetail'>;
@@ -29,11 +37,23 @@ const STYLE_EMOJI: Record<string, string> = {
   sparkling: '✨',
 };
 
-function WineRow({ wine, index }: { wine: FlightWine; index: number }) {
+function WineRow({
+  wine,
+  index,
+  completedWine,
+  onPress,
+}: {
+  wine: FlightWine;
+  index: number;
+  completedWine: Wine | null;
+  onPress: () => void;
+}) {
+  const isCompleted = completedWine !== null;
+
   return (
-    <View style={styles.wineRow}>
-      <View style={styles.winePosition}>
-        <Text style={styles.winePositionText}>{index + 1}</Text>
+    <TouchableOpacity style={styles.wineRow} onPress={onPress} activeOpacity={0.7}>
+      <View style={[styles.winePosition, isCompleted && styles.winePositionDone]}>
+        <Text style={styles.winePositionText}>{isCompleted ? '✓' : index + 1}</Text>
       </View>
       <View style={styles.wineInfo}>
         <Text style={styles.wineName}>
@@ -51,8 +71,25 @@ function WineRow({ wine, index }: { wine: FlightWine; index: number }) {
         {wine.description ? (
           <Text style={styles.wineDesc}>{wine.description}</Text>
         ) : null}
+
+        {isCompleted ? (
+          <View style={styles.completionRow}>
+            {completedWine.rating !== null && (
+              <Text style={styles.completionRating}>★ {completedWine.rating}/10</Text>
+            )}
+            {completedWine.liked === true && <Text style={styles.completionEmoji}>👍</Text>}
+            {completedWine.liked === false && <Text style={styles.completionEmoji}>👎</Text>}
+            {completedWine.notes ? (
+              <Text style={styles.completionNotes} numberOfLines={1}>
+                "{completedWine.notes}"
+              </Text>
+            ) : null}
+          </View>
+        ) : (
+          <Text style={styles.tapToTaste}>Tap to taste →</Text>
+        )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -62,7 +99,10 @@ export default function TastingFlightDetailScreen() {
   const [flight, setFlight] = useState<TastingFlight | null>(null);
   const [winery, setWinery] = useState<Winery | null>(null);
   const [loading, setLoading] = useState(true);
-  const [starting, setStarting] = useState(false);
+  const [session, setSession] = useState<GuidedSession | null>(null);
+  const [completedWines, setCompletedWines] = useState<Record<number, Wine>>({});
+
+  const { reset, update, setGuidedSessionId, setTastingType } = useWineTasting();
 
   useEffect(() => {
     (async () => {
@@ -79,27 +119,77 @@ export default function TastingFlightDetailScreen() {
     })();
   }, [params.flightId, params.wineryId]);
 
-  const handleBeginTasting = async () => {
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        const s = await loadActiveSessionForFlight(params.flightId);
+        setSession(s);
+        if (s) {
+          const allWines = await loadWines();
+          const map: Record<number, Wine> = {};
+          s.completedWineIds.forEach((wineId, idx) => {
+            if (wineId) {
+              const found = allWines.find(w => w.id === wineId);
+              if (found) map[idx] = found;
+            }
+          });
+          setCompletedWines(map);
+        } else {
+          setCompletedWines({});
+        }
+      })();
+    }, [params.flightId])
+  );
+
+  const handleWineTap = async (wine: FlightWine, sortedIndex: number) => {
     if (!flight || !winery) return;
-    setStarting(true);
-    try {
-      const session = createGuidedSession({
+
+    let activeSession = session;
+    if (!activeSession) {
+      activeSession = createGuidedSession({
         wineryId: winery.id,
         flightId: flight.id,
         flightName: flight.name,
         wineryName: winery.name,
         wineCount: flight.wines.length,
       });
-      await Promise.all([
-        saveGuidedSession(session),
-        saveFlightForSession(flight),
-      ]);
-      navigation.navigate('GuidedSession', { sessionId: session.id });
-    } catch {
-      Alert.alert('Error', 'Could not start the tasting session. Please try again.');
-    } finally {
-      setStarting(false);
+      await saveFlightForSession(flight);
     }
+
+    const updatedSession = { ...activeSession, currentIndex: sortedIndex };
+    await saveGuidedSession(updatedSession);
+    setSession(updatedSession);
+
+    reset();
+    setTastingType('full');
+    setGuidedSessionId(activeSession.id);
+    update({
+      name: wine.name,
+      producer: wine.producer,
+      vintage: wine.vintage,
+      style: wine.style ?? undefined,
+      grapes: wine.grapes,
+      country: wine.country ?? '',
+      region: wine.region ?? '',
+      abv: wine.abv ?? '',
+    });
+
+    navigation.navigate('BasicInfo', { guidedSessionId: activeSession.id });
+  };
+
+  const handleCompleteTasting = async () => {
+    if (session && flight) {
+      await archiveFlightSession(session, flight);
+      await clearGuidedSession();
+    }
+    navigation.reset({
+      index: 2,
+      routes: [
+        { name: 'Home' },
+        { name: 'WineryCheckIn' },
+        { name: 'WineryDetail', params: { wineryId: params.wineryId } },
+      ],
+    });
   };
 
   if (loading) {
@@ -122,48 +212,54 @@ export default function TastingFlightDetailScreen() {
     );
   }
 
+  const sortedWines = flight.wines.slice().sort((a, b) => a.position - b.position);
+  const completedCount = Object.keys(completedWines).length;
+
   return (
     <SafeAreaView style={styles.safe}>
       <AppHeader title={flight.name} />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        {/* Flight header */}
         <View style={styles.flightHeader}>
           <Text style={styles.wineryName}>{winery.name}</Text>
           <Text style={styles.flightName}>{flight.name}</Text>
           {flight.description ? (
             <Text style={styles.flightDesc}>{flight.description}</Text>
           ) : null}
-          <View style={styles.metaBadge}>
-            <Text style={styles.metaBadgeText}>
-              {flight.wines.length} wine{flight.wines.length !== 1 ? 's' : ''}
-            </Text>
+          <View style={styles.metaRow}>
+            <View style={styles.metaBadge}>
+              <Text style={styles.metaBadgeText}>
+                {flight.wines.length} wine{flight.wines.length !== 1 ? 's' : ''}
+              </Text>
+            </View>
+            {completedCount > 0 && (
+              <View style={styles.progressBadge}>
+                <Text style={styles.progressBadgeText}>
+                  {completedCount}/{flight.wines.length} tasted
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
-        {/* Wine list */}
         <Text style={styles.sectionLabel}>The Flight</Text>
-        {flight.wines
-          .slice()
-          .sort((a, b) => a.position - b.position)
-          .map((wine, i) => (
-            <WineRow key={wine.id} wine={wine} index={i} />
-          ))}
+        {sortedWines.map((wine, i) => (
+          <WineRow
+            key={wine.id}
+            wine={wine}
+            index={i}
+            completedWine={completedWines[i] ?? null}
+            onPress={() => handleWineTap(wine, i)}
+          />
+        ))}
 
-        <View style={{ height: 100 }} />
+        {session !== null && (
+          <TouchableOpacity style={styles.completeBtn} onPress={handleCompleteTasting} activeOpacity={0.85}>
+            <Text style={styles.completeBtnText}>Complete Tasting</Text>
+          </TouchableOpacity>
+        )}
+
+        <View style={{ height: 40 }} />
       </ScrollView>
-
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.beginBtn, starting && { opacity: 0.6 }]}
-          onPress={handleBeginTasting}
-          disabled={starting}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.beginBtnText}>
-            {starting ? 'Starting…' : 'Begin Tasting'}
-          </Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }
@@ -203,17 +299,33 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginTop: 4,
   },
+  metaRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 6,
+    alignItems: 'center',
+  },
   metaBadge: {
     backgroundColor: Colors.primaryLight,
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    marginTop: 6,
   },
   metaBadgeText: {
     fontSize: 13,
     fontWeight: '700',
     color: Colors.primaryDark,
+  },
+  progressBadge: {
+    backgroundColor: '#e8f5e9',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  progressBadgeText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#2e7d32',
   },
   sectionLabel: {
     fontSize: 16,
@@ -237,6 +349,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 2,
+  },
+  winePositionDone: {
+    backgroundColor: '#2e7d32',
   },
   winePositionText: {
     color: Colors.white,
@@ -262,23 +377,43 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 8,
   },
-  footer: {
-    backgroundColor: Colors.background,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
+  tapToTaste: {
+    fontSize: 12,
+    color: Colors.primaryDark,
+    fontWeight: '600',
+    marginTop: 6,
   },
-  beginBtn: {
-    backgroundColor: Colors.btnWinery,
-    borderRadius: 10,
-    paddingVertical: 18,
+  completionRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
+    flexWrap: 'wrap',
   },
-  beginBtnText: {
+  completionRating: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#2e7d32',
+  },
+  completionEmoji: {
+    fontSize: 14,
+  },
+  completionNotes: {
+    fontSize: 12,
+    color: Colors.textMuted,
+    fontStyle: 'italic',
+    flex: 1,
+  },
+  completeBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: 10,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  completeBtnText: {
     color: Colors.white,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
     fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
   },

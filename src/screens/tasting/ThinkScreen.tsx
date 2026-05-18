@@ -64,13 +64,17 @@ export default function ThinkScreen() {
           });
           const updatedIds = [...session.completedWineIds];
           updatedIds[session.currentIndex] = wine.id;
-          await saveGuidedSession({
-            ...session,
-            completedWineIds: updatedIds,
-            currentIndex: session.currentIndex + 1,
-          });
+          await saveGuidedSession({ ...session, completedWineIds: updatedIds });
           reset();
-          navigation.navigate('GuidedSession', { sessionId: guidedSessionId });
+          navigation.reset({
+            index: 3,
+            routes: [
+              { name: 'Home' },
+              { name: 'WineryCheckIn' },
+              { name: 'WineryDetail', params: { wineryId: session.wineryId } },
+              { name: 'TastingFlightDetail', params: { flightId: session.flightId, wineryId: session.wineryId } },
+            ],
+          });
           return;
         }
       }

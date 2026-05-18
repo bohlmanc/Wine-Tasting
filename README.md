@@ -1,89 +1,118 @@
-# Wine-Tasting
-A Mobile application for wine tasting
+# Wine Pocket Pal
 
-To publish a new version of the app to EAS:
+A React Native mobile app for guided wine tasting. Walk through a structured Look → Smell → Taste → Think tasting flow, scan labels with AI or on-device OCR, and track your tastings over time. Supports winery check-in for guided flights at partner locations.
 
-```
-npx eas-cli@latest workflow:run create-production-builds.yml
-```
+## Feature status
 
-To run a preview version of the build on Android:
+### Core tasting
+| Feature | Status |
+|---|---|
+| Full tasting flow (Look, Smell, Taste, Think) | ✅ Done |
+| Quick-note tasting type | ✅ Done |
+| Label scanning — AI mode (Claude Haiku) | ✅ Done |
+| Label scanning — Offline mode (ML Kit OCR) | ✅ Done |
+| My Tastings list + Wine Detail | ✅ Done |
+| Tasting Calendar | ✅ Done |
+| Custom tasting flights | ✅ Done |
 
-```
-eas build --profile preview --platform android
-```
+### Winery partner feature
+| Feature | Status |
+|---|---|
+| Supabase backend (project created) | ✅ Done |
+| Supabase schema + RLS | ⬜ Not applied yet — SQL ready in `docs/winery-partner-feature.md` |
+| Winery check-in (search) | ✅ Done |
+| Winery check-in (QR scan) | ⬜ Not started |
+| Winery detail + tasting flight list | ✅ Done |
+| Guided session flow | ✅ Done |
+| Flight history (My Flights, Completed Flight Detail) | ✅ Done |
+| Winery admin portal (Next.js) | ⬜ Not started |
+
+---
+
+## Stack
+
+- **Expo SDK 52**, React Native 0.76.9, TypeScript
+- **Navigation**: `@react-navigation/native-stack`
+- **Storage**: AsyncStorage (local), Supabase (winery data)
+- **Label scanning**: Claude Haiku API (online) / ML Kit text recognition (offline)
+
+---
 
 ## Building locally on Android
 
-With your phone connected via USB and USB debugging enabled, run:
+With your phone connected via USB and USB debugging enabled:
 
 ```
 npx expo run:android
 ```
 
-Make sure you're using expo 52, that's what version is supported. Also ensure you install a dev client first with:
+This builds the app and deploys it directly to the connected device. First run takes a few minutes; subsequent runs are faster.
 
-```
-npx expo install expo-dev-client
-```
+> **Note:** ML Kit (offline label scanning) is a native module — it won't work in Expo Go. Always use `npx expo run:android` for testing scan features.
 
-This builds the app and deploys it directly to the connected device via Android Studio's toolchain.
+> **Windows note:** Gradle build scripts are patched via `patch-package` to fix pipe buffer deadlocks. The patches apply automatically on `npm install`. See `docs/gradle-windows-build.md` if you regenerate the `android/` directory.
+
+---
 
 ## Building locally on iOS
 
 ### Prerequisites
-- Xcode installed from the Mac App Store (with at least one iOS runtime downloaded)
+- Xcode (Mac App Store) with at least one iOS runtime downloaded
 - Xcode command line tools: `xcode-select --install`
-- Accept the Xcode license (first time only): `sudo xcodebuild -license accept`
+- Accept the Xcode license (first time): `sudo xcodebuild -license accept`
 
-### Run on the iOS Simulator
-
-No Apple Developer account needed for the simulator. Once Xcode and a runtime are installed, just run:
+### Simulator
 
 ```
 npx expo run:ios
 ```
 
-This compiles the native app and launches it in the iOS Simulator automatically. On first run it will take a few minutes to build; subsequent runs are faster thanks to incremental compilation.
-
-To target a specific simulator (e.g. iPhone 16 Pro):
+Target a specific simulator:
 
 ```
 npx expo run:ios --simulator "iPhone 16 Pro"
 ```
 
-List available simulators with:
+List available simulators:
 
 ```
 xcrun simctl list devices available
 ```
 
-### Run on a physical iOS device
+### Physical device
 
-You need an Apple Developer account (free tier works for sideloading, paid for distribution).
+Requires an Apple Developer account (free tier works for sideloading).
 
-1. Connect your iPhone via USB and trust the Mac on the device.
-2. Open Xcode once → **Settings → Accounts** → add your Apple ID → Xcode will create a personal signing certificate automatically.
-3. Then run:
+1. Connect iPhone via USB and trust the Mac on the device.
+2. Xcode → **Settings → Accounts** → add your Apple ID.
+3. Run:
 
 ```
 npx expo run:ios --device
 ```
 
-Expo will prompt you to select your connected device and handle signing with your personal team. If Xcode complains about a provisioning profile, open the generated `ios/` project in Xcode (`open ios/WinePocketPal.xcworkspace`), select your target → **Signing & Capabilities**, and set your Team there.
+If Xcode complains about provisioning, open `ios/WinePocketPal.xcworkspace`, select your target → **Signing & Capabilities**, and set your Team.
 
-### Offline (ML Kit) and camera features
+> **Xcode 26 note:** Several compatibility patches are applied via `patch-package` and Podfile post_install hooks. See `docs/ios-xcode26-build-issues.md` if the iOS build fails.
 
-ML Kit text recognition and the camera work fine in local iOS builds — they are native modules and will not work in Expo Go. Always use `npx expo run:ios` (not Expo Go) to test scanning features.
+---
 
-## Launching on the App Store & Google Play
+## Store deployment
 
-### Prerequisites
-- **Apple**: Apple Developer account ($99/year) — developer.apple.com/programs
-- **Google**: Google Play Console account ($25 one-time) — play.google.com/console
+Both platforms are built and submitted locally (not via EAS cloud builds).
 
-### 1. Confirm app.json config
-Make sure these fields are set before building:
+### Android → Google Play
+
+1. Build a release APK/AAB locally via Android Studio or Gradle.
+2. Upload to Google Play Console manually or via `eas submit --platform android`.
+
+### iOS → App Store
+
+1. Build an archive locally via Xcode (`Product → Archive`).
+2. Distribute via Xcode Organizer → App Store Connect, or `eas submit --platform ios`.
+
+### app.json fields to confirm before a release build
+
 ```json
 {
   "expo": {
@@ -100,31 +129,13 @@ Make sure these fields are set before building:
 }
 ```
 
-### 2. Build for production
-```bash
-# iOS only
-eas build --platform ios --profile production
+---
 
-# Android only
-eas build --platform android --profile production
+## Docs
 
-# Both at once
-eas build --platform all --profile production
-```
-EAS will handle signing credentials automatically on first run.
-
-### 3. Submit to the stores
-```bash
-# iOS → App Store Connect
-eas submit --platform ios
-
-# Android → Google Play
-eas submit --platform android
-```
-iOS requires an App Store Connect API key; Android requires a Google Play service account JSON key — EAS will prompt for these.
-
-### 4. Complete the store listing (manual)
-- **iOS**: App Store Connect → create app listing, add screenshots & description, submit for review (~1–3 days).
-- **Android**: Google Play Console → create app, fill store listing, publish (~1–3 days for first release).
-
-See the [EAS Submit docs](https://docs.expo.dev/submit/introduction/) for credential setup details.
+| Doc | What's in it |
+|---|---|
+| `docs/winery-partner-feature.md` | Full design reference + Supabase schema SQL + phase plan |
+| `docs/camera-launch-issue.md` | Android camera not opening on first tap — symptoms and next steps |
+| `docs/gradle-windows-build.md` | Windows Gradle deadlock patches |
+| `docs/ios-xcode26-build-issues.md` | Xcode 26 compatibility patches |

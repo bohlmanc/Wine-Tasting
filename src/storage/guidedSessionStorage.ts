@@ -46,6 +46,13 @@ export async function loadCompletedFlightSessions(): Promise<CompletedFlightSess
   return JSON.parse(raw);
 }
 
+export async function loadActiveSessionForFlight(flightId: string): Promise<GuidedSession | null> {
+  const raw = await AsyncStorage.getItem(SESSION_KEY);
+  if (!raw) return null;
+  const session: GuidedSession = JSON.parse(raw);
+  return session.flightId === flightId ? session : null;
+}
+
 export function createGuidedSession(params: {
   wineryId: string;
   flightId: string;
