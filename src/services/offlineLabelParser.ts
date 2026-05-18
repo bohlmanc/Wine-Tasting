@@ -37,8 +37,15 @@ function extractAbv(text: string): string {
   const p1 = text.match(/(\d{1,2}[.,]\d)\s*%/i);
   if (p1) return `${p1[1].replace(',', '.')}%`;
 
-  // 2. Whole number % followed by alc/vol keyword
-  const p2 = text.match(/(\d{2})\s*%\s*(?:alc|vol)/i);
+  // 1b. 3-digit number + % + alc/vol: OCR dropped the decimal (e.g. "125% alc" → "12.5%")
+  const p1b = text.match(/\b(\d{3})\s*%\s*(?:alc|vol)/i);
+  if (p1b) {
+    const reconstructed = parseInt(p1b[1], 10) / 10;
+    if (reconstructed >= 7 && reconstructed <= 22) return `${reconstructed}%`;
+  }
+
+  // 2. Whole number % followed by alc/vol keyword (\b prevents matching "25" inside "125%")
+  const p2 = text.match(/\b(\d{2})\s*%\s*(?:alc|vol)/i);
   if (p2) return `${p2[1]}%`;
 
   // 3. ABV keyword phrase near a number (keyword-anchored, any order)
@@ -53,16 +60,23 @@ function extractAbv(text: string): string {
   // 4. Scan each line: if the line references alc/vol/abv/%, pull any wine-range number
   for (const line of text.split('\n')) {
     if (/alc|vol|abv|%/i.test(line)) {
-      // Prefer decimal (e.g. "13.5"), fall back to integer in wine ABV range (8–20)
       const dec = line.match(/\b(\d{1,2}[.,]\d)\b/);
       if (dec) return `${dec[1].replace(',', '.')}%`;
+      // 3-digit repair within a line (OCR dropped decimal, e.g. "ALC 125 VOL" → "12.5%")
+      const threeDigit = line.match(/\b(\d{3})\b/);
+      if (threeDigit) {
+        const reconstructed = parseInt(threeDigit[1], 10) / 10;
+        if (reconstructed >= 7 && reconstructed <= 22) return `${reconstructed}%`;
+      }
+      // Whole-number fallback already limited to realistic wine ABV range (8–19)
       const whole = line.match(/\b(1[0-9]|[89])\b/);
       if (whole) return `${whole[1]}%`;
     }
   }
 
-  // 5. Bare whole-number % anywhere as a last resort
-  const p5 = text.match(/\b(\d{2})\s*%/);
+  // 5. Bare whole-number % as last resort — restricted to wine ABV range to avoid
+  // promo text ("25% more"), addresses, and other non-ABV percentages on the label
+  const p5 = text.match(/\b([89]|1[0-9]|20)\s*%/);
   if (p5) return `${p5[1]}%`;
 
   return '';
@@ -103,10 +117,19 @@ function normalizeText(str: string): string {
 
 function extractGrapes(text: string): string[] {
   const normalized = normalizeText(text).toLowerCase();
-  return GRAPE_VARIETIES.filter(grape =>
+  const matched = GRAPE_VARIETIES.filter(grape =>
     // Handle slash variants like "Syrah/Shiraz" — either side counts as a match
     grape.toLowerCase().split('/').some(v => normalized.includes(normalizeText(v.trim())))
   );
+  // Remove any grape whose name is a substring of another matched grape
+  // e.g. if "Grenache Blanc" matched, drop "Grenache"
+  return matched.filter(grape => {
+    const gNorm = normalizeText(grape).toLowerCase();
+    return !matched.some(other => {
+      const oNorm = normalizeText(other).toLowerCase();
+      return oNorm !== gNorm && oNorm.includes(gNorm);
+    });
+  });
 }
 
 function wordBoundaryMatch(text: string, term: string): boolean {

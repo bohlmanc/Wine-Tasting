@@ -49,7 +49,7 @@ function reducer(state: TastingState, action: TastingAction): TastingState {
     case 'UPDATE':
       return { ...state, ...action.payload };
     case 'LOAD_WINE':
-      return { ...action.payload };
+      return { ...action.payload, scanApplied: false };
     case 'RESET':
       return { ...initialState };
     case 'SET_SCAN_APPLIED':
