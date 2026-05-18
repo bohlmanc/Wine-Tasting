@@ -62,6 +62,8 @@ export default function TasteScreen() {
     tasting.finish ? FINISH_STEPS.indexOf(tasting.finish) : 2
   );
 
+  const activeFlightName = tasting.customFlightId ? tasting.customFlightName : null;
+
   const handleNext = () => {
     update({
       sweetness: SWEETNESS_STEPS[sweetnessIdx],
@@ -85,6 +87,13 @@ export default function TasteScreen() {
           />
         </View>
         <Text style={styles.heading}>How Does Your Wine{'\n'}Taste?</Text>
+
+        {activeFlightName && (
+          <View style={styles.activeFlightBanner}>
+            <Text style={styles.activeFlightLabel}>Flight</Text>
+            <Text style={styles.activeFlightName}>{activeFlightName}</Text>
+          </View>
+        )}
 
         <GaugeSection
           label="Sweetness"
@@ -180,6 +189,32 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: Colors.text,
   },
+
+  activeFlightBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 16,
+    alignSelf: 'stretch',
+  },
+  activeFlightLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.primaryDark,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  activeFlightName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.primaryDark,
+    flex: 1,
+  },
+
   gaugeSection: {
     width: '100%',
     marginBottom: 24,
@@ -202,6 +237,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     textDecorationLine: 'underline',
   },
+
   nextBar: {
     backgroundColor: Colors.background,
     paddingHorizontal: 20,
@@ -214,7 +250,7 @@ const styles = StyleSheet.create({
   nextBtn: {
     backgroundColor: Colors.primary,
     borderRadius: 10,
-    paddingHorizontal: 32,
+    paddingHorizontal: 28,
     paddingVertical: 16,
   },
   nextBtnText: {

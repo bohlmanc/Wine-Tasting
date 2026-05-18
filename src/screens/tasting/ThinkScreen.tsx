@@ -30,8 +30,10 @@ const EMOJI_REACTIONS = ['😍', '😋', '🤔', '😐', '😬', '🤢'];
 
 export default function ThinkScreen() {
   const navigation = useNavigation<Nav>();
-  const { tasting, reset } = useWineTasting();
+  const { tasting, reset, setTastingType, setCustomFlight } = useWineTasting();
   const guidedSessionId = tasting.guidedSessionId ?? null;
+  const customFlightId = tasting.customFlightId ?? null;
+  const customFlightName = tasting.customFlightName ?? null;
 
   const [liked, setLiked] = useState<boolean | null>(tasting.liked ?? null);
   const [rating, setRating] = useState<number | null>(tasting.rating ?? null);
@@ -71,6 +73,37 @@ export default function ThinkScreen() {
           navigation.navigate('GuidedSession', { sessionId: guidedSessionId });
           return;
         }
+      }
+
+      if (customFlightId && customFlightName) {
+        await saveWine({
+          ...wine,
+          flightId: customFlightId,
+          flightName: customFlightName,
+        });
+        reset();
+        Alert.alert(
+          'Wine Saved!',
+          `Added to "${customFlightName}". Add another wine to this flight?`,
+          [
+            {
+              text: 'End Flight',
+              onPress: () => {
+                navigation.reset({ index: 1, routes: [{ name: 'Home' }, { name: 'MyTastings' }] });
+              },
+            },
+            {
+              text: 'Add Next Wine',
+              style: 'cancel',
+              onPress: () => {
+                setTastingType('full');
+                setCustomFlight(customFlightId, customFlightName);
+                navigation.navigate('BasicInfo');
+              },
+            },
+          ]
+        );
+        return;
       }
 
       await saveWine(wine);

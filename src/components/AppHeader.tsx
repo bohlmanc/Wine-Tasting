@@ -46,7 +46,7 @@ export default function AppHeader({ title, showBack = true, onBack }: AppHeaderP
       <View style={styles.header}>
         {showBack ? (
           <TouchableOpacity style={styles.iconBtn} onPress={handleBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Text style={styles.backArrow}>←</Text>
+            <Text style={styles.backArrow}>‹</Text>
           </TouchableOpacity>
         ) : (
           <View style={styles.iconBtn} />
@@ -112,8 +112,10 @@ const styles = StyleSheet.create({
   },
   backArrow: {
     color: Colors.white,
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 28,
+    fontWeight: '300',
+    lineHeight: 32,
+    textAlign: 'center',
   },
   hamburger: {
     gap: 5,

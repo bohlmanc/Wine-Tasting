@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { Wine, TastingType } from '../types';
 
-type TastingState = Partial<Wine> & {
+type TastingState = Omit<Partial<Wine>, 'guidedSessionId'> & {
   tastingType: TastingType;
   scanApplied: boolean;
   guidedSessionId: string | null;
+  customFlightId: string | null;
+  customFlightName: string | null;
 };
 
 type TastingAction =
@@ -13,12 +15,15 @@ type TastingAction =
   | { type: 'LOAD_WINE'; payload: Wine }
   | { type: 'RESET' }
   | { type: 'SET_SCAN_APPLIED'; payload: boolean }
-  | { type: 'SET_GUIDED_SESSION_ID'; payload: string | null };
+  | { type: 'SET_GUIDED_SESSION_ID'; payload: string | null }
+  | { type: 'SET_CUSTOM_FLIGHT'; payload: { id: string | null; name: string | null } };
 
 const initialState: TastingState = {
   tastingType: 'full',
   scanApplied: false,
   guidedSessionId: null,
+  customFlightId: null,
+  customFlightName: null,
   dateTasted: new Date().toLocaleDateString('en-US'),
   producer: '',
   name: '',
@@ -51,11 +56,18 @@ const initialState: TastingState = {
 function reducer(state: TastingState, action: TastingAction): TastingState {
   switch (action.type) {
     case 'SET_TASTING_TYPE':
-      return { ...initialState, tastingType: action.payload };
+      return {
+        ...initialState,
+        tastingType: action.payload,
+        customFlightId: state.customFlightId,
+        customFlightName: state.customFlightName,
+      };
     case 'UPDATE':
       return { ...state, ...action.payload };
     case 'LOAD_WINE':
-      return { ...action.payload, scanApplied: false, guidedSessionId: null };
+      return { ...action.payload, scanApplied: false, guidedSessionId: null, customFlightId: null, customFlightName: null };
+    case 'SET_CUSTOM_FLIGHT':
+      return { ...state, customFlightId: action.payload.id, customFlightName: action.payload.name };
     case 'RESET':
       return { ...initialState };
     case 'SET_SCAN_APPLIED':
@@ -75,6 +87,7 @@ interface WineTastingContextValue {
   reset: () => void;
   setScanApplied: (v: boolean) => void;
   setGuidedSessionId: (id: string | null) => void;
+  setCustomFlight: (id: string | null, name: string | null) => void;
 }
 
 const WineTastingContext = createContext<WineTastingContextValue | null>(null);
@@ -93,10 +106,12 @@ export function WineTastingProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_SCAN_APPLIED', payload: v });
   const setGuidedSessionId = (id: string | null) =>
     dispatch({ type: 'SET_GUIDED_SESSION_ID', payload: id });
+  const setCustomFlight = (id: string | null, name: string | null) =>
+    dispatch({ type: 'SET_CUSTOM_FLIGHT', payload: { id, name } });
 
   return (
     <WineTastingContext.Provider
-      value={{ tasting, setTastingType, update, loadWine, reset, setScanApplied, setGuidedSessionId }}
+      value={{ tasting, setTastingType, update, loadWine, reset, setScanApplied, setGuidedSessionId, setCustomFlight }}
     >
       {children}
     </WineTastingContext.Provider>
