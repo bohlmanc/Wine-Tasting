@@ -35,7 +35,8 @@ export default function AppHeader({ title, showBack = true, onBack }: AppHeaderP
 
   const menuItems: { label: string; screen: keyof RootStackParamList }[] = [
     { label: 'Home', screen: 'Home' },
-    { label: 'View My Wines', screen: 'MyTastings' },
+    { label: 'My Tastings', screen: 'MyTastings' },
+    { label: 'Tasting Calendar', screen: 'TastingCalendar' },
     { label: 'Wine Tasting Guide', screen: 'WineTastingGuide' },
     { label: 'My Profile', screen: 'MyProfile' },
   ];

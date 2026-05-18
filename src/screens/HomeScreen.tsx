@@ -60,7 +60,15 @@ function HomeContent() {
         >
           <Text style={styles.btnText}>My Tastings</Text>
         </TouchableOpacity>
-        
+
+        <TouchableOpacity
+          style={[styles.btn, { backgroundColor: Colors.btnCalendar }]}
+          onPress={() => navigation.navigate('TastingCalendar')}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.btnText}>Tasting Calendar</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.btn, { backgroundColor: Colors.btnCellar }]}
           onPress={() => navigation.navigate('MyCellar')}

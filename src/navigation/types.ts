@@ -15,6 +15,7 @@ export type RootStackParamList = {
   Taste: undefined;
   Think: undefined;
   MyTastings: undefined;
+  TastingCalendar: undefined;
   WineDetail: { wineId: string };
   WineTastingGuide: undefined;
   MyProfile: undefined;

@@ -18,6 +18,7 @@ import SmellOutdoorOtherScreen from '../screens/tasting/SmellOutdoorOtherScreen'
 import TasteScreen from '../screens/tasting/TasteScreen';
 import ThinkScreen from '../screens/tasting/ThinkScreen';
 import MyTastingsScreen from '../screens/MyTastingsScreen';
+import TastingCalendarScreen from '../screens/TastingCalendarScreen';
 import WineDetailScreen from '../screens/WineDetailScreen';
 import WineTastingGuideScreen from '../screens/WineTastingGuideScreen';
 import MyProfileScreen from '../screens/MyProfileScreen';
@@ -51,6 +52,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Taste" component={TasteScreen} />
         <Stack.Screen name="Think" component={ThinkScreen} />
         <Stack.Screen name="MyTastings" component={MyTastingsScreen} />
+        <Stack.Screen name="TastingCalendar" component={TastingCalendarScreen} />
         <Stack.Screen name="WineDetail" component={WineDetailScreen} />
         <Stack.Screen name="WineTastingGuide" component={WineTastingGuideScreen} />
         <Stack.Screen name="MyProfile" component={MyProfileScreen} />
