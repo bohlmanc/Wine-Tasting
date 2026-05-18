@@ -22,6 +22,20 @@
 - **Offline mode**: `src/services/offlineLabelParser.ts` — uses `@react-native-ml-kit/text-recognition` (on-device OCR); extracts vintage, ABV, grapes, country via regex + list matching; name/producer left blank for manual entry
 - UI: `src/screens/ScanLabelScreen.tsx` — mode toggle (AI Online / Offline), captures front + back label photos
 
+## Winery partner feature (planned)
+
+Wineries sign up via a separate web admin portal, input tasting flights and wines, and generate QR codes. Consumers check in via QR scan or search, then do a guided tasting session that walks through each wine in the flight using the existing tasting flow screens.
+
+**Design reference**: [docs/winery-partner-feature.md](docs/winery-partner-feature.md) — read this before touching any winery/flight/guided-session code.
+
+**Chosen approach**:
+- Backend: Supabase (Postgres + RLS + Auth)
+- Check-in: QR code (primary) + search (fallback); location-based is phase 2
+- Winery admin portal: separate Next.js app on Vercel
+- Consumer accounts: not required in v1 — tastings remain local to device
+
+**Key constraint**: The existing tasting flow screens (`BasicInfo` → `Think`) are reused as-is. The guided session only adds an optional `guidedSessionId` param so `Think` knows to return to the session instead of `Home`.
+
 ## Known gotchas
 
 ### GestureHandlerRootView is required
