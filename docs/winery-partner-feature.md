@@ -11,6 +11,7 @@ This document is the authoritative design reference for the "winery partner" fea
 | App: WineryCheckIn, WinerySearch, WineryDetail, TastingFlightDetail screens | ✅ Done |
 | App: GuidedSession orchestrator + BasicInfo pre-population | ✅ Done |
 | App: Supabase client + wineryService wired to real DB | ✅ Done |
+| App: Flight history (MyFlights, CompletedFlightDetail, flight provenance on Wine) | ✅ Done |
 | App: QR code scanning | ⬜ Not started (Phase 4) |
 | Winery admin portal (Next.js) | ⬜ Not started (Phase 5+) |
 
@@ -372,5 +373,6 @@ Row-level security ensures a winery account can only read/write its own rows.
 | 2 | App: WineryCheckIn, WinerySearch, WineryDetail, TastingFlightDetail screens | ✅ Done |
 | 3 | App: GuidedSession orchestrator + BasicInfo pre-population from flight data | ✅ Done |
 | 3b | App: Supabase client + wineryService wired to real DB | ✅ Done |
+| 3c | App: Flight history — MyFlightsScreen, CompletedFlightDetailScreen; sessions archived on Done/End; flight provenance stamped on Wine; "From flight" link in WineDetail | ✅ Done |
 | 4 | App: QR code scanning (reuse existing camera, add barcode decoder) | ⬜ Not started |
 | 5 | Optional: location-based check-in, consumer accounts, cloud session sync | ⬜ Not started |

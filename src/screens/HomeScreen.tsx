@@ -85,13 +85,6 @@ function HomeContent() {
           <Text style={styles.btnText}>Visit a Winery</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.btn, { backgroundColor: '#5B6E5B' }]}
-          onPress={() => navigation.navigate('MyFlights')}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.btnText}>My Flights</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.footer}>

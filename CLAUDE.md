@@ -26,7 +26,7 @@
 
 Wineries sign up via a separate web admin portal, input tasting flights and wines, and generate QR codes. Consumers check in via QR scan or search, then do a guided tasting session that walks through each wine in the flight using the existing tasting flow screens.
 
-**Design reference**: [docs/winery-partner-feature.md](docs/winery-partner-feature.md) — read this before touching any winery/flight/guided-session code.
+**Design reference**: [docs/winery-partner-feature.md](docs/winery-partner-feature.md) — read this before touching any winery/flight/guided-session code. **Keep it current**: update the phase plan and status table whenever a phase completes, new work ships, or the approach pivots.
 
 **Chosen approach**:
 - Backend: Supabase (Postgres + RLS + Auth)
