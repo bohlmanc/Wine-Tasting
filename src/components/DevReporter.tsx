@@ -7,6 +7,7 @@ import {
   TextInput,
   ScrollView,
   StyleSheet,
+  Linking,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { navigationRef } from '../navigation/navigationRef';
@@ -41,6 +42,24 @@ async function saveReport(report: DebugReport): Promise<void> {
 
 async function clearAllReports(): Promise<void> {
   await AsyncStorage.removeItem(STORAGE_KEY);
+}
+
+function formatReportsForEmail(reports: DebugReport[]): string {
+  if (reports.length === 0) return 'No reports saved.';
+  const body = reports
+    .map(
+      (r, i) =>
+        `--- Report ${i + 1} ---\nScreen: ${r.screen}\nTime: ${new Date(r.timestamp).toLocaleString()}\nNote: ${r.note}`
+    )
+    .join('\n\n');
+  return `=== Wine Pocket Pal Bug Reports ===\nExported: ${new Date().toLocaleString()}\n\n${body}`;
+}
+
+async function openMailWithReports(reports: DebugReport[]): Promise<void> {
+  const subject = `Wine Pocket Pal – Bug Reports (${reports.length})`;
+  const body = formatReportsForEmail(reports);
+  const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  await Linking.openURL(url);
 }
 
 export default function DevReporter() {
@@ -82,6 +101,8 @@ export default function DevReporter() {
     await clearAllReports();
     setReports([]);
   };
+
+  const handleExportAll = () => openMailWithReports(reports);
 
   return (
     <>
@@ -157,12 +178,29 @@ export default function DevReporter() {
                       Clear All
                     </Text>
                   </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.btnCancel}
-                    onPress={() => setViewMode(false)}
-                  >
-                    <Text style={styles.btnCancelText}>Back</Text>
-                  </TouchableOpacity>
+                  <View style={styles.rowRight}>
+                    <TouchableOpacity
+                      onPress={handleExportAll}
+                      style={styles.btnSecondary}
+                      disabled={reports.length === 0}
+                    >
+                      <Text
+                        style={[
+                          styles.btnSecondaryText,
+                          { color: Colors.btnView },
+                          reports.length === 0 && styles.btnDisabled,
+                        ]}
+                      >
+                        Export All
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.btnCancel}
+                      onPress={() => setViewMode(false)}
+                    >
+                      <Text style={styles.btnCancelText}>Back</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </>
             )}
