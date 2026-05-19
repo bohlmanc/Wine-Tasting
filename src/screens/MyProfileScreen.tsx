@@ -49,8 +49,6 @@ export default function MyProfileScreen() {
     });
   }, []);
 
-  const likedCount = wines.filter(w => w.liked === true).length;
-
   const countryBreakdown = wines.reduce<Record<string, number>>((acc, w) => {
     if (w.country) acc[w.country] = (acc[w.country] ?? 0) + 1;
     return acc;
@@ -96,22 +94,21 @@ export default function MyProfileScreen() {
           <TouchableOpacity onPress={() => Linking.openURL('https://www.corkandfizz.com')}>
             <Text style={[styles.appSubtitle, styles.link]}>Created by Cork & Fizz, LLC</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.calendarBtn, { backgroundColor: Colors.btnCalendar }]}
-            onPress={() => navigation.navigate('TastingCalendar')}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.calendarBtnText}>Tasting Calendar</Text>
-          </TouchableOpacity>
-
         </View>
 
         {/* Stats */}
         <View style={styles.statsRow}>
           <StatBox label="Total Wines" value={String(wines.length)} onPress={() => navigation.navigate('MyTastings')} />
-          <StatBox label="Liked" value={String(likedCount)} color={Colors.liked} />
           <StatBox label="Flights" value={String(flightCount)} onPress={() => navigation.navigate('MyFlights')} />
         </View>
+
+        <TouchableOpacity
+          style={[styles.calendarBtn, { backgroundColor: Colors.btnCalendar }]}
+          onPress={() => navigation.navigate('TastingCalendar')}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.calendarBtnText}>Tasting Calendar</Text>
+        </TouchableOpacity>
         {/* Style breakdown */}
         {Object.keys(styleBreakdown).length > 0 && (
           <Section title="By Style">
@@ -146,9 +143,10 @@ export default function MyProfileScreen() {
           </Section>
         )}
 
-        {/* Danger zone */}
-        {wines.length > 0 && (
+        {/* TODO: Remove "Clear All Wines" before launch — dev/testing tool only */}
+        {__DEV__ && wines.length > 0 && (
           <Section title="Data">
+            <Text style={styles.devOnlyLabel}>DEV BUILD ONLY — not in release</Text>
             <TouchableOpacity style={styles.dangerBtn} onPress={handleClearAll}>
               <Text style={styles.dangerBtnText}>Clear All Wines</Text>
             </TouchableOpacity>
@@ -270,6 +268,14 @@ const styles = StyleSheet.create({
   },
   countryName: { fontSize: 14, fontWeight: '600', color: Colors.text },
   countryCount: { fontSize: 13, color: Colors.textMuted },
+  devOnlyLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.disliked,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
   dangerBtn: {
     borderWidth: 1.5,
     borderColor: Colors.disliked,

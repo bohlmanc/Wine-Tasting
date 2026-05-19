@@ -95,15 +95,28 @@ const WINERY_FIELDS = `id, name, slug, description, region, country, logo_url`;
 // Service functions
 // ---------------------------------------------------------------------------
 
-export async function searchWineries(query: string): Promise<Winery[]> {
-  if (!query.trim()) return [];
+let wineryCache: Winery[] | null = null;
+
+export async function getAllWineries(): Promise<Winery[]> {
+  if (wineryCache) return wineryCache;
   const { data, error } = await supabase
     .from('wineries')
     .select(WINERY_FIELDS)
-    .ilike('name', `%${query}%`)
-    .limit(20);
+    .order('name');
   if (error) throw error;
-  return (data as WineryRow[]).map(mapWinery);
+  wineryCache = (data as WineryRow[]).map(mapWinery);
+  return wineryCache;
+}
+
+export async function searchWineries(query: string): Promise<Winery[]> {
+  const all = await getAllWineries();
+  if (!query.trim()) return all;
+  const q = query.toLowerCase().trim();
+  return all.filter(w =>
+    w.name.toLowerCase().includes(q) ||
+    (w.region ?? '').toLowerCase().includes(q) ||
+    (w.country ?? '').toLowerCase().includes(q)
+  );
 }
 
 export async function getWineryBySlug(slug: string): Promise<Winery | null> {

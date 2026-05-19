@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   FlatList,
+  Modal,
   StyleSheet,
   SafeAreaView,
   Platform,
@@ -15,6 +16,7 @@ import { RootStackParamList } from '../navigation/types';
 import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
 import { getWinery, getActiveFlights } from '../services/wineryService';
+import { loadActiveSessionForFlight, clearGuidedSession, clearFlightOverride } from '../storage/guidedSessionStorage';
 import { Winery, TastingFlight } from '../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -27,6 +29,8 @@ export default function WineryDetailScreen() {
   const [flights, setFlights] = useState<TastingFlight[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [modalFlight, setModalFlight] = useState<TastingFlight | null>(null);
+  const [flightHasSession, setFlightHasSession] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -66,9 +70,66 @@ export default function WineryDetailScreen() {
     );
   }
 
+  const handleFlightTap = async (flight: TastingFlight) => {
+    const session = await loadActiveSessionForFlight(flight.id);
+    setFlightHasSession(!!session);
+    setModalFlight(flight);
+  };
+
+  const handleStartFlight = () => {
+    if (!modalFlight || !winery) return;
+    const flight = modalFlight;
+    setModalFlight(null);
+    navigation.navigate('TastingFlightDetail', { flightId: flight.id, wineryId: winery.id });
+  };
+
+  const handleStartFresh = async () => {
+    if (!modalFlight || !winery) return;
+    const flight = modalFlight;
+    setModalFlight(null);
+    await Promise.all([
+      clearGuidedSession(),
+      clearFlightOverride(flight.id),
+    ]);
+    navigation.navigate('TastingFlightDetail', { flightId: flight.id, wineryId: winery.id });
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <AppHeader title={winery.name} />
+      <Modal
+        visible={modalFlight !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalFlight(null)}
+      >
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setModalFlight(null)}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>{modalFlight?.name}</Text>
+            <Text style={styles.modalMeta}>
+              {modalFlight?.wines.length ?? 0} wine{(modalFlight?.wines.length ?? 0) !== 1 ? 's' : ''}
+            </Text>
+            {flightHasSession ? (
+              <>
+                <Text style={styles.modalHint}>You have an in-progress tasting for this flight.</Text>
+                <TouchableOpacity style={styles.modalPrimaryBtn} onPress={handleStartFlight} activeOpacity={0.85}>
+                  <Text style={styles.modalPrimaryBtnText}>Resume Tasting</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalSecondaryBtn} onPress={handleStartFresh} activeOpacity={0.85}>
+                  <Text style={styles.modalSecondaryBtnText}>Start Fresh</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <TouchableOpacity style={styles.modalPrimaryBtn} onPress={handleStartFlight} activeOpacity={0.85}>
+                <Text style={styles.modalPrimaryBtnText}>Start Tasting</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setModalFlight(null)} activeOpacity={0.7}>
+              <Text style={styles.modalCancelBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
       <FlatList
         data={flights}
         keyExtractor={f => f.id}
@@ -94,10 +155,7 @@ export default function WineryDetailScreen() {
           <TouchableOpacity
             style={styles.flightCard}
             activeOpacity={0.85}
-            onPress={() => navigation.navigate('TastingFlightDetail', {
-              flightId: item.id,
-              wineryId: winery.id,
-            })}
+            onPress={() => handleFlightTap(item)}
           >
             <View style={styles.flightInfo}>
               <Text style={styles.flightName}>{item.name}</Text>
@@ -204,4 +262,78 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   arrow: { fontSize: 28, color: Colors.textMuted, lineHeight: 32 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 360,
+    alignItems: 'center',
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  modalMeta: {
+    fontSize: 13,
+    color: Colors.textMuted,
+    marginBottom: 4,
+  },
+  modalHint: {
+    fontSize: 13,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  modalPrimaryBtn: {
+    backgroundColor: Colors.btnWinery,
+    borderRadius: 10,
+    paddingVertical: 14,
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalPrimaryBtnText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '800',
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+  },
+  modalSecondaryBtn: {
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    borderRadius: 10,
+    paddingVertical: 12,
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalSecondaryBtnText: {
+    color: Colors.text,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  modalCancelBtn: {
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  modalCancelBtnText: {
+    fontSize: 14,
+    color: Colors.textMuted,
+    textDecorationLine: 'underline',
+  },
 });

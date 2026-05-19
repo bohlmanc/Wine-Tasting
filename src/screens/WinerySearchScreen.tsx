@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
-import { searchWineries } from '../services/wineryService';
+import { getAllWineries } from '../services/wineryService';
 import { Winery } from '../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -23,21 +23,24 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 export default function WinerySearchScreen() {
   const navigation = useNavigation<Nav>();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<Winery[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
+  const [allWineries, setAllWineries] = useState<Winery[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleSearch = useCallback(async () => {
-    if (!query.trim()) return;
-    setLoading(true);
-    setSearched(true);
-    try {
-      const data = await searchWineries(query.trim());
-      setResults(data);
-    } finally {
-      setLoading(false);
-    }
-  }, [query]);
+  useEffect(() => {
+    getAllWineries()
+      .then(setAllWineries)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = useMemo(() => {
+    if (!query.trim()) return allWineries;
+    const q = query.toLowerCase();
+    return allWineries.filter(w =>
+      w.name.toLowerCase().includes(q) ||
+      (w.region ?? '').toLowerCase().includes(q) ||
+      (w.country ?? '').toLowerCase().includes(q)
+    );
+  }, [allWineries, query]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -48,29 +51,32 @@ export default function WinerySearchScreen() {
             style={styles.input}
             value={query}
             onChangeText={setQuery}
-            placeholder="Winery name, region, or country…"
+            placeholder="Filter by name, region, or country…"
             placeholderTextColor={Colors.textMuted}
             returnKeyType="search"
-            onSubmitEditing={handleSearch}
             autoFocus
           />
-          <TouchableOpacity style={styles.searchBtn} onPress={handleSearch} activeOpacity={0.85}>
-            <Text style={styles.searchBtnText}>Search</Text>
-          </TouchableOpacity>
         </View>
 
         {loading && <ActivityIndicator color={Colors.primary} style={{ marginTop: 32 }} />}
 
-        {!loading && searched && results.length === 0 && (
+        {!loading && allWineries.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>🍷</Text>
-            <Text style={styles.emptyText}>No wineries found for "{query}"</Text>
+            <Text style={styles.emptyText}>No wineries available</Text>
+          </View>
+        )}
+
+        {!loading && allWineries.length > 0 && filtered.length === 0 && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>🔍</Text>
+            <Text style={styles.emptyText}>No results for "{query}"</Text>
             <Text style={styles.emptySubtext}>Try a different name or region.</Text>
           </View>
         )}
 
         <FlatList
-          data={results}
+          data={filtered}
           keyExtractor={w => w.id}
           contentContainerStyle={{ paddingBottom: 20 }}
           renderItem={({ item }) => (
@@ -99,14 +105,11 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
   container: { flex: 1, backgroundColor: Colors.background },
   searchRow: {
-    flexDirection: 'row',
-    gap: 10,
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
   input: {
-    flex: 1,
     borderWidth: 1.5,
     borderColor: Colors.border,
     borderRadius: 8,
@@ -115,17 +118,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Colors.text,
     backgroundColor: Colors.white,
-  },
-  searchBtn: {
-    backgroundColor: Colors.btnWinery,
-    borderRadius: 8,
-    paddingHorizontal: 18,
-    justifyContent: 'center',
-  },
-  searchBtnText: {
-    color: Colors.white,
-    fontWeight: '800',
-    fontSize: 15,
   },
   emptyState: {
     alignItems: 'center',

@@ -160,6 +160,9 @@ export default function TastingFlightDetailScreen() {
         // Without an active session, always use the canonical wine list from the DB so
         // wines added/removed in a previous session don't bleed into new ones.
         const override = activeSession ? await loadFlightOverride(params.flightId) : null;
+        if (!activeSession) {
+          void clearFlightOverride(params.flightId);
+        }
         if (override) {
           setFlight(override);
           setIsLocalOverride(true);
@@ -295,6 +298,32 @@ export default function TastingFlightDetailScreen() {
     navigation.navigate('BasicInfo', { guidedSessionId: activeSession.id });
   };
 
+  const handleCancelTasting = () => {
+    Alert.alert(
+      'Cancel Tasting',
+      'This will abandon the current session. Your saved wine tastings will be kept, but the session progress will be lost.',
+      [
+        { text: 'Keep Tasting', style: 'cancel' },
+        {
+          text: 'Cancel Tasting',
+          style: 'destructive',
+          onPress: async () => {
+            await Promise.all([
+              clearGuidedSession(),
+              clearFlightOverride(params.flightId),
+            ]);
+            setSession(null);
+            setCompletedWines({});
+            setIsLocalOverride(false);
+            setEditMode(false);
+            const f = await getFlight(params.flightId, params.wineryId);
+            setFlight(f);
+          },
+        },
+      ]
+    );
+  };
+
   const handleCompleteTasting = async () => {
     if (session && flight) {
       const anyTasted = Object.values(session.completedWineIds).some(Boolean);
@@ -403,9 +432,14 @@ export default function TastingFlightDetailScreen() {
         )}
 
         {!editMode && session !== null && (
-          <TouchableOpacity style={styles.completeBtn} onPress={handleCompleteTasting} activeOpacity={0.85}>
-            <Text style={styles.completeBtnText}>Complete Tasting</Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity style={styles.completeBtn} onPress={handleCompleteTasting} activeOpacity={0.85}>
+              <Text style={styles.completeBtnText}>Complete Tasting</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelTastingBtn} onPress={handleCancelTasting} activeOpacity={0.85}>
+              <Text style={styles.cancelTastingBtnText}>Cancel Tasting</Text>
+            </TouchableOpacity>
+          </>
         )}
 
         <View style={{ height: 40 }} />
@@ -773,6 +807,16 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   cancelLinkText: {
+    fontSize: 14,
+    color: Colors.textMuted,
+    textDecorationLine: 'underline',
+  },
+  cancelTastingBtn: {
+    alignItems: 'center',
+    paddingVertical: 10,
+    marginTop: 4,
+  },
+  cancelTastingBtnText: {
     fontSize: 14,
     color: Colors.textMuted,
     textDecorationLine: 'underline',
