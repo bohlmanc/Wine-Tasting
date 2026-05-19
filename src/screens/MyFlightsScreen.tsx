@@ -32,7 +32,7 @@ export default function MyFlightsScreen() {
   }, []));
 
   const tastedCount = (cs: CompletedFlightSession) =>
-    cs.session.completedWineIds.filter(Boolean).length;
+    Object.values(cs.session.completedWineIds).filter(Boolean).length;
 
   return (
     <SafeAreaView style={styles.safe}>

@@ -103,5 +103,6 @@ export interface GuidedSession {
   wineryName: string;
   startedAt: string;
   currentIndex: number;
-  completedWineIds: (string | null)[];
+  currentWineId: string | null;
+  completedWineIds: Record<string, string | null>;
 }

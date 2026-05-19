@@ -62,8 +62,8 @@ export default function ThinkScreen() {
             wineryId: session.wineryId,
             wineryName: session.wineryName,
           });
-          const updatedIds = [...session.completedWineIds];
-          updatedIds[session.currentIndex] = wine.id;
+          const updatedIds = { ...session.completedWineIds };
+          if (session.currentWineId) updatedIds[session.currentWineId] = wine.id;
           await saveGuidedSession({ ...session, completedWineIds: updatedIds });
           reset();
           navigation.reset({

@@ -100,7 +100,7 @@ export default function TastingFlightDetailScreen() {
   const [winery, setWinery] = useState<Winery | null>(null);
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<GuidedSession | null>(null);
-  const [completedWines, setCompletedWines] = useState<Record<number, Wine>>({});
+  const [completedWines, setCompletedWines] = useState<Record<string, Wine>>({});
 
   const { reset, update, setGuidedSessionId, setTastingType } = useWineTasting();
 
@@ -126,11 +126,11 @@ export default function TastingFlightDetailScreen() {
         setSession(s);
         if (s) {
           const allWines = await loadWines();
-          const map: Record<number, Wine> = {};
-          s.completedWineIds.forEach((wineId, idx) => {
-            if (wineId) {
-              const found = allWines.find(w => w.id === wineId);
-              if (found) map[idx] = found;
+          const map: Record<string, Wine> = {};
+          Object.entries(s.completedWineIds).forEach(([flightWineId, savedWineId]) => {
+            if (savedWineId) {
+              const found = allWines.find(w => w.id === savedWineId);
+              if (found) map[flightWineId] = found;
             }
           });
           setCompletedWines(map);
@@ -151,12 +151,11 @@ export default function TastingFlightDetailScreen() {
         flightId: flight.id,
         flightName: flight.name,
         wineryName: winery.name,
-        wineCount: flight.wines.length,
       });
       await saveFlightForSession(flight);
     }
 
-    const updatedSession = { ...activeSession, currentIndex: sortedIndex };
+    const updatedSession = { ...activeSession, currentIndex: sortedIndex, currentWineId: wine.id };
     await saveGuidedSession(updatedSession);
     setSession(updatedSession);
 
@@ -247,7 +246,7 @@ export default function TastingFlightDetailScreen() {
             key={wine.id}
             wine={wine}
             index={i}
-            completedWine={completedWines[i] ?? null}
+            completedWine={completedWines[wine.id] ?? null}
             onPress={() => handleWineTap(wine, i)}
           />
         ))}

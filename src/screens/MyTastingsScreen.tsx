@@ -336,6 +336,13 @@ function WineCard({
         {wine.grapes && wine.grapes.length > 0 && (
           <Text style={styles.cardGrapes} numberOfLines={1}>{wine.grapes.join(', ')}</Text>
         )}
+        {wine.guidedSessionId && wine.flightName ? (
+          <View style={styles.flightBadge}>
+            <Text style={styles.flightBadgeText} numberOfLines={1}>
+              🍾 {wine.wineryName ? `${wine.wineryName} · ` : ''}{wine.flightName}
+            </Text>
+          </View>
+        ) : null}
         {wine.rating != null && (
           <Text style={styles.cardRating}>{'★'.repeat(Math.round(wine.rating / 2))}{'☆'.repeat(5 - Math.round(wine.rating / 2))} {wine.rating}/10</Text>
         )}
@@ -516,6 +523,15 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 10, fontWeight: '800', color: Colors.white },
   metaText: { fontSize: 12, color: Colors.textMuted },
   cardGrapes: { fontSize: 12, color: Colors.textMuted, fontStyle: 'italic', marginBottom: 2 },
+  flightBadge: {
+    backgroundColor: '#F5F0E8',
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    alignSelf: 'flex-start',
+    marginBottom: 2,
+  },
+  flightBadgeText: { fontSize: 11, fontWeight: '600', color: '#8B6914' },
   cardRating: { fontSize: 12, color: Colors.textMuted, marginBottom: 2 },
   cardDate: { fontSize: 11, color: Colors.textMuted },
   cardRight: { alignItems: 'center', justifyContent: 'space-between', paddingLeft: 8 },

@@ -7,7 +7,7 @@ This document is the authoritative design reference for the "winery partner" fea
 | Area | Status |
 |---|---|
 | Supabase project created | ✅ Done |
-| Supabase schema + RLS applied | ⬜ Not started — see **Supabase Setup** section below |
+| Supabase schema + RLS applied | ✅ Done |
 | App: WineryCheckIn, WinerySearch, WineryDetail, TastingFlightDetail screens | ✅ Done |
 | App: GuidedSession orchestrator + BasicInfo pre-population | ✅ Done |
 | App: Supabase client + wineryService wired to real DB | ✅ Done |
@@ -368,8 +368,8 @@ Row-level security ensures a winery account can only read/write its own rows.
 
 | Phase | Scope | Status |
 |---|---|---|
-| 1a | Supabase schema + RLS | ⬜ Not started — SQL ready above |
-| 1b | Winery admin portal (registration, flight builder, QR gen) | ⬜ Not started |
+| 1a | Supabase schema + RLS | ✅ Done |
+| 1b | Winery admin portal (registration, flight builder, QR gen) | ✅ Done — Next.js app at wine-admin-portal/ (sibling to Wine App) |
 | 2 | App: WineryCheckIn, WinerySearch, WineryDetail, TastingFlightDetail screens | ✅ Done |
 | 3 | App: GuidedSession orchestrator + BasicInfo pre-population from flight data | ✅ Done |
 | 3b | App: Supabase client + wineryService wired to real DB | ✅ Done |

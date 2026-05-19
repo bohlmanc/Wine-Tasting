@@ -66,7 +66,7 @@ export default function CompletedFlightDetailScreen() {
   }
 
   const sortedWines: FlightWine[] = cs.flight.wines.slice().sort((a, b) => a.position - b.position);
-  const tasted = cs.session.completedWineIds.filter(Boolean).length;
+  const tasted = Object.values(cs.session.completedWineIds).filter(Boolean).length;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -86,7 +86,7 @@ export default function CompletedFlightDetailScreen() {
 
         <Text style={styles.sectionLabel}>Wines</Text>
         {sortedWines.map((wine, i) => {
-          const savedId = cs.session.completedWineIds[i];
+          const savedId = cs.session.completedWineIds[wine.id];
           return (
             <TouchableOpacity
               key={wine.id}

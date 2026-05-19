@@ -91,20 +91,18 @@ export default function MyProfileScreen() {
             <Text style={[styles.appSubtitle, styles.link]}>Created by Cork & Fizz, LLC</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.calendarBtn}
+            style={[styles.calendarBtn, { backgroundColor: Colors.btnCalendar }]}
             onPress={() => navigation.navigate('TastingCalendar')}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
             <Text style={styles.calendarBtnText}>Tasting Calendar</Text>
-            <Text style={styles.calendarBtnArrow}>›</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.calendarBtn, { marginTop: 10, backgroundColor: '#5B6E5B' }]}
+            style={[styles.calendarBtn, { backgroundColor: '#5B6E5B' }]}
             onPress={() => navigation.navigate('MyFlights')}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
             <Text style={styles.calendarBtnText}>My Flights</Text>
-            <Text style={styles.calendarBtnArrow}>›</Text>
           </TouchableOpacity>
         </View>
 
@@ -285,20 +283,17 @@ const styles = StyleSheet.create({
   footerRow: { flexDirection: 'row', alignItems: 'center' },
   link: { textDecorationLine: 'underline' },
   calendarBtn: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.primary,
+    justifyContent: 'center',
     borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginTop: 20,
+    paddingVertical: 22,
+    marginTop: 12,
+    alignSelf: 'stretch',
   },
   calendarBtnText: {
-    fontSize: 15,
+    fontSize: 22,
     fontWeight: '800',
     fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
     color: Colors.white,
   },
-  calendarBtnArrow: { fontSize: 22, color: Colors.white, fontWeight: '300' },
 });

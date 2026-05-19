@@ -58,7 +58,6 @@ export function createGuidedSession(params: {
   flightId: string;
   flightName: string;
   wineryName: string;
-  wineCount: number;
 }): GuidedSession {
   return {
     id: `session-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -68,6 +67,7 @@ export function createGuidedSession(params: {
     wineryName: params.wineryName,
     startedAt: new Date().toISOString(),
     currentIndex: 0,
-    completedWineIds: Array(params.wineCount).fill(null),
+    currentWineId: null,
+    completedWineIds: {},
   };
 }

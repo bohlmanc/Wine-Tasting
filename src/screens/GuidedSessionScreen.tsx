@@ -65,8 +65,12 @@ export default function GuidedSessionScreen() {
   const isComplete = session != null && session.currentIndex >= sortedWines.length;
   const currentWine: FlightWine | undefined = sortedWines[session?.currentIndex ?? 0];
 
-  const handleStartTasting = () => {
+  const handleStartTasting = async () => {
     if (!currentWine || !session) return;
+
+    const updatedSession = { ...session, currentWineId: currentWine.id };
+    await saveGuidedSession(updatedSession);
+    setSession(updatedSession);
 
     reset();
     setTastingType('full');
@@ -142,7 +146,7 @@ export default function GuidedSessionScreen() {
 
           <Text style={styles.sectionLabel}>Your Tastings</Text>
           {sortedWines.map((wine, i) => {
-            const savedId = session.completedWineIds[i];
+            const savedId = session.completedWineIds[wine.id];
             return (
               <TouchableOpacity
                 key={wine.id}
@@ -237,9 +241,11 @@ export default function GuidedSessionScreen() {
           style={styles.skipBtn}
           activeOpacity={0.85}
           onPress={async () => {
+            const nextIndex = session.currentIndex + 1;
             const updated: GuidedSession = {
               ...session,
-              currentIndex: session.currentIndex + 1,
+              currentIndex: nextIndex,
+              currentWineId: sortedWines[nextIndex]?.id ?? null,
             };
             await saveGuidedSession(updated);
             setSession(updated);

@@ -54,14 +54,6 @@ function HomeContent() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.btn, { backgroundColor: Colors.btnView }]}
-          onPress={() => navigation.navigate('MyTastings')}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.btnText}>My Tastings</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
           style={[styles.btn, { backgroundColor: Colors.btnGuide }]}
           onPress={() => navigation.navigate('WineTastingGuide')}
           activeOpacity={0.85}
@@ -77,15 +69,8 @@ function HomeContent() {
           <Text style={styles.btnText}>My Profile</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.btn, { backgroundColor: Colors.btnWinery }]}
-          onPress={() => navigation.navigate('WineryCheckIn')}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.btnText}>Visit a Winery</Text>
-        </TouchableOpacity>
 
-      </View>
+</View>
 
       <View style={styles.footer}>
         <TouchableOpacity onPress={() => Linking.openURL('https://www.corkandfizz.com')}>
