@@ -103,13 +103,7 @@ export default function MyProfileScreen() {
           >
             <Text style={styles.calendarBtnText}>Tasting Calendar</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.calendarBtn, { backgroundColor: '#5B6E5B' }]}
-            onPress={() => navigation.navigate('MyFlights')}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.calendarBtnText}>My Flights</Text>
-          </TouchableOpacity>
+
         </View>
 
         {/* Stats */}

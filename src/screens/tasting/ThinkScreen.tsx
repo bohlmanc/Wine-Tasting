@@ -19,7 +19,7 @@ import InfoModal from '../../components/InfoModal';
 import { Colors } from '../../constants/colors';
 import { useWineTasting } from '../../context/WineTastingContext';
 import { saveWine } from '../../storage/wineStorage';
-import { loadGuidedSession, saveGuidedSession } from '../../storage/guidedSessionStorage';
+import { loadGuidedSession, saveGuidedSession, loadCompletedFlightSessions } from '../../storage/guidedSessionStorage';
 import { Wine } from '../../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -34,6 +34,8 @@ export default function ThinkScreen() {
   const guidedSessionId = tasting.guidedSessionId ?? null;
   const customFlightId = tasting.customFlightId ?? null;
   const customFlightName = tasting.customFlightName ?? null;
+  const retroactiveSessionId = tasting.retroactiveSessionId ?? null;
+  const retroactiveFlightWineId = tasting.retroactiveFlightWineId ?? null;
 
   const [liked, setLiked] = useState<boolean | null>(tasting.liked ?? null);
   const [rating, setRating] = useState<number | null>(tasting.rating ?? null);
@@ -55,6 +57,32 @@ export default function ThinkScreen() {
     };
 
     try {
+      if (retroactiveSessionId && retroactiveFlightWineId) {
+        const allSessions = await loadCompletedFlightSessions();
+        const archived = allSessions.find(s => s.session.id === retroactiveSessionId);
+        if (archived) {
+          await saveWine({
+            ...wine,
+            guidedSessionId: archived.session.id,
+            flightId: archived.session.flightId,
+            flightName: archived.session.flightName,
+            wineryId: archived.session.wineryId,
+            wineryName: archived.session.wineryName,
+            flightWineId: retroactiveFlightWineId,
+          });
+          reset();
+          navigation.reset({
+            index: 2,
+            routes: [
+              { name: 'Home' },
+              { name: 'MyFlights' },
+              { name: 'CompletedFlightDetail', params: { sessionId: retroactiveSessionId } },
+            ],
+          });
+          return;
+        }
+      }
+
       if (guidedSessionId) {
         const session = await loadGuidedSession(guidedSessionId);
         if (session) {
@@ -65,6 +93,7 @@ export default function ThinkScreen() {
             flightName: session.flightName,
             wineryId: session.wineryId,
             wineryName: session.wineryName,
+            flightWineId: session.currentWineId ?? undefined,
           });
           const updatedIds = { ...session.completedWineIds };
           if (session.currentWineId) updatedIds[session.currentWineId] = wine.id;

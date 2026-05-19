@@ -28,6 +28,7 @@ import {
   clearGuidedSession,
   saveFlightOverride,
   loadFlightOverride,
+  clearFlightOverride,
 } from '../storage/guidedSessionStorage';
 import { loadWines } from '../storage/wineStorage';
 import { TastingFlight, Winery, FlightWine, GuidedSession, Wine, WineStyle } from '../types';
@@ -150,12 +151,15 @@ export default function TastingFlightDetailScreen() {
   useEffect(() => {
     (async () => {
       try {
-        const [f, w] = await Promise.all([
+        const [f, w, activeSession] = await Promise.all([
           getFlight(params.flightId, params.wineryId),
           getWinery(params.wineryId),
+          loadActiveSessionForFlight(params.flightId),
         ]);
-        // Prefer local override if one exists
-        const override = await loadFlightOverride(params.flightId);
+        // Only restore a local override when there is an active session in progress.
+        // Without an active session, always use the canonical wine list from the DB so
+        // wines added/removed in a previous session don't bleed into new ones.
+        const override = activeSession ? await loadFlightOverride(params.flightId) : null;
         if (override) {
           setFlight(override);
           setIsLocalOverride(true);
@@ -293,8 +297,14 @@ export default function TastingFlightDetailScreen() {
 
   const handleCompleteTasting = async () => {
     if (session && flight) {
-      await archiveFlightSession(session, flight);
-      await clearGuidedSession();
+      const anyTasted = Object.values(session.completedWineIds).some(Boolean);
+      if (anyTasted) {
+        await archiveFlightSession(session, flight);
+      }
+      await Promise.all([
+        clearGuidedSession(),
+        clearFlightOverride(params.flightId),
+      ]);
     }
     navigation.reset({
       index: 2,

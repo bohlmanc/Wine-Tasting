@@ -15,7 +15,9 @@ import { RootStackParamList } from '../navigation/types';
 import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
 import { loadCompletedFlightSessions } from '../storage/guidedSessionStorage';
+import { loadWines } from '../storage/wineStorage';
 import { CompletedFlightSession, FlightWine } from '../types';
+import { useWineTasting } from '../context/WineTastingContext';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'CompletedFlightDetail'>;
@@ -35,14 +37,36 @@ function formatDate(iso: string): string {
 export default function CompletedFlightDetailScreen() {
   const navigation = useNavigation<Nav>();
   const { params } = useRoute<Route>();
+  const { reset, setTastingType, update, setRetroactive } = useWineTasting();
   const [cs, setCs] = useState<CompletedFlightSession | null>(null);
+  const [savedWineIds, setSavedWineIds] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   useFocusEffect(useCallback(() => {
-    loadCompletedFlightSessions().then(all => {
-      setCs(all.find(s => s.session.id === params.sessionId) ?? null);
+    (async () => {
+      const [all, allWines] = await Promise.all([loadCompletedFlightSessions(), loadWines()]);
+      const found = all.find(s => s.session.id === params.sessionId) ?? null;
+      setCs(found);
+      if (found) {
+        const ids: Record<string, string> = {};
+        // Primary: match by flightWineId stored on the Wine (robust against UUID changes)
+        for (const w of allWines) {
+          if (w.guidedSessionId === found.session.id && w.flightWineId) {
+            ids[w.flightWineId] = w.id;
+          }
+        }
+        // Fallback: use completedWineIds for tastings saved before this fix
+        if (Object.keys(ids).length === 0) {
+          for (const [k, v] of Object.entries(found.session.completedWineIds)) {
+            if (v) ids[k] = v;
+          }
+        }
+        setSavedWineIds(ids);
+      } else {
+        setSavedWineIds({});
+      }
       setLoading(false);
-    });
+    })();
   }, [params.sessionId]));
 
   if (loading) {
@@ -66,7 +90,7 @@ export default function CompletedFlightDetailScreen() {
   }
 
   const sortedWines: FlightWine[] = cs.flight.wines.slice().sort((a, b) => a.position - b.position);
-  const tasted = Object.values(cs.session.completedWineIds).filter(Boolean).length;
+  const tasted = Object.keys(savedWineIds).length;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -86,15 +110,33 @@ export default function CompletedFlightDetailScreen() {
 
         <Text style={styles.sectionLabel}>Wines</Text>
         {sortedWines.map((wine, i) => {
-          const savedId = cs.session.completedWineIds[wine.id];
+          const savedId = savedWineIds[wine.id];
+          const handlePress = () => {
+            if (savedId) {
+              navigation.navigate('WineDetail', { wineId: savedId });
+            } else {
+              reset();
+              setTastingType('full');
+              update({
+                name: wine.name,
+                producer: wine.producer,
+                vintage: wine.vintage,
+                style: wine.style ?? undefined,
+                grapes: wine.grapes,
+                country: wine.country ?? '',
+                region: wine.region ?? '',
+                abv: wine.abv ?? '',
+              });
+              setRetroactive(cs.session.id, wine.id);
+              navigation.navigate('BasicInfo');
+            }
+          };
           return (
             <TouchableOpacity
               key={wine.id}
               style={[styles.wineRow, !savedId && styles.wineRowSkipped]}
-              activeOpacity={savedId ? 0.85 : 1}
-              onPress={() => {
-                if (savedId) navigation.navigate('WineDetail', { wineId: savedId });
-              }}
+              activeOpacity={0.85}
+              onPress={handlePress}
             >
               <Text style={styles.wineNum}>{i + 1}</Text>
               <View style={styles.wineInfo}>
@@ -108,10 +150,10 @@ export default function CompletedFlightDetailScreen() {
                 {savedId ? (
                   <Text style={styles.wineStatus}>Saved · tap to view</Text>
                 ) : (
-                  <Text style={styles.wineSkipped}>Skipped</Text>
+                  <Text style={styles.wineSkipped}>Skipped · tap to add notes</Text>
                 )}
               </View>
-              {savedId && <Text style={styles.arrow}>›</Text>}
+              <Text style={styles.arrow}>›</Text>
             </TouchableOpacity>
           );
         })}
@@ -174,7 +216,7 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
     gap: 12,
   },
-  wineRowSkipped: { opacity: 0.5 },
+  wineRowSkipped: { opacity: 0.7 },
   wineNum: {
     width: 28,
     fontSize: 15,

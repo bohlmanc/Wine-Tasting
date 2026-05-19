@@ -64,6 +64,10 @@ export async function loadFlightOverride(flightId: string): Promise<TastingFligh
   return JSON.parse(raw);
 }
 
+export async function clearFlightOverride(flightId: string): Promise<void> {
+  await AsyncStorage.removeItem(`${FLIGHT_OVERRIDE_PREFIX}${flightId}`);
+}
+
 export function createGuidedSession(params: {
   wineryId: string;
   flightId: string;

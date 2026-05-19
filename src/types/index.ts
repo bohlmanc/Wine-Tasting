@@ -51,6 +51,7 @@ export interface Wine {
   flightName?: string;
   wineryId?: string;
   wineryName?: string;
+  flightWineId?: string;
 }
 
 export type PartialWine = Partial<Wine> & { id: string; tastingType: TastingType };

@@ -15,6 +15,7 @@ import { RootStackParamList } from '../navigation/types';
 import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
 import { loadWines } from '../storage/wineStorage';
+import { isCustomFlightCompleted, markCustomFlightCompleted } from '../storage/customFlightStorage';
 import { Wine } from '../types';
 import { useWineTasting } from '../context/WineTastingContext';
 
@@ -67,11 +68,16 @@ export default function CustomFlightScreen() {
   const { params } = useRoute<Route>();
   const { setCustomFlight } = useWineTasting();
   const [wines, setWines] = useState<Wine[]>([]);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      loadWines().then(all => {
+      Promise.all([
+        loadWines(),
+        isCustomFlightCompleted(params.flightId),
+      ]).then(([all, completed]) => {
         setWines(all.filter(w => w.flightId === params.flightId));
+        setIsCompleted(completed);
       });
     }, [params.flightId])
   );
@@ -80,17 +86,18 @@ export default function CustomFlightScreen() {
     navigation.navigate('AddWineType');
   };
 
-  const handleCompleteTasting = () => {
+  const handleCompleteFlight = () => {
     Alert.alert(
       'Complete Flight?',
-      `Your ${wines.length} wine${wines.length !== 1 ? 's' : ''} are saved. This will end the flight.`,
+      `Your ${wines.length} wine${wines.length !== 1 ? 's' : ''} are saved. No more wines can be added after this.`,
       [
         { text: 'Not Yet', style: 'cancel' },
         {
           text: 'Complete',
-          onPress: () => {
+          onPress: async () => {
+            await markCustomFlightCompleted(params.flightId);
             setCustomFlight(null, null);
-            navigation.reset({ index: 1, routes: [{ name: 'Home' }, { name: 'MyTastings' }] });
+            navigation.reset({ index: 1, routes: [{ name: 'Home' }, { name: 'MyFlights' }] });
           },
         },
       ]
@@ -128,6 +135,11 @@ export default function CustomFlightScreen() {
                 {wines.length} wine{wines.length !== 1 ? 's' : ''} tasted
               </Text>
             </View>
+            {isCompleted && (
+              <View style={styles.completedBadge}>
+                <Text style={styles.completedBadgeText}>Completed</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -148,23 +160,27 @@ export default function CustomFlightScreen() {
           </View>
         )}
 
-        <TouchableOpacity style={styles.addWineBtn} onPress={handleAddWine} activeOpacity={0.85}>
-          <Text style={styles.addWineBtnText}>+ Add Wine</Text>
-        </TouchableOpacity>
-
-        {wines.length > 0 && (
-          <TouchableOpacity
-            style={styles.completeBtn}
-            onPress={handleCompleteTasting}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.completeBtnText}>Complete Tasting</Text>
+        {!isCompleted && (
+          <TouchableOpacity style={styles.addWineBtn} onPress={handleAddWine} activeOpacity={0.85}>
+            <Text style={styles.addWineBtnText}>+ Add Wine</Text>
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity style={styles.cancelLink} onPress={handleCancelFlight}>
-          <Text style={styles.cancelLinkText}>Cancel Flight</Text>
-        </TouchableOpacity>
+        {!isCompleted && wines.length > 0 && (
+          <TouchableOpacity
+            style={styles.completeBtn}
+            onPress={handleCompleteFlight}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.completeBtnText}>Complete Flight</Text>
+          </TouchableOpacity>
+        )}
+
+        {!isCompleted && (
+          <TouchableOpacity style={styles.cancelLink} onPress={handleCancelFlight}>
+            <Text style={styles.cancelLinkText}>Cancel Flight</Text>
+          </TouchableOpacity>
+        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -215,6 +231,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: Colors.primaryDark,
+  },
+  completedBadge: {
+    backgroundColor: '#2e7d32',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  completedBadgeText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#fff',
   },
   sectionLabel: {
     fontSize: 16,

@@ -383,6 +383,10 @@ export default function BasicInfoScreen() {
           <TextInput style={styles.input} value={producer} onChangeText={setProducer} placeholder="" />
         </Row>
 
+        <Row label="Name:" info={<InfoModal title="Wine Name" body="The specific wine name or cuvée label on the bottle." />}>
+          <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="" />
+        </Row>
+
         <Row label="Grape(s):" info={<InfoModal title="Grape Varieties" body="The grape variety or varieties used to make this wine. You can add multiple grapes." />}>
           <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setGrapePickerOpen(true)}>
             <Text style={grapes.length > 0 ? styles.dropdownValue : styles.dropdownPlaceholder}>
@@ -469,10 +473,6 @@ export default function BasicInfoScreen() {
                   }}
                 />
               )}
-            </Row>
-
-            <Row label="Name:" info={<InfoModal title="Wine Name" body="The specific wine name or cuvée label on the bottle." />}>
-              <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="" />
             </Row>
 
             <Row label="Country:" info={<InfoModal title="Country" body="The country where the grapes were grown and the wine was produced." />}>
