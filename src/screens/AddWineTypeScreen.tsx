@@ -43,9 +43,10 @@ export default function AddWineTypeScreen() {
   const handleStartCustomFlight = () => {
     const name = flightNameInput.trim();
     if (!name) return;
-    const id = `custom-flight-${Date.now()}`;
+    const id = tasting.customFlightId ?? `custom-flight-${Date.now()}`;
     setCustomFlight(id, name);
     closeModal();
+    navigation.navigate('CustomFlight', { flightId: id, flightName: name });
   };
 
   const handleWineryFlight = () => {

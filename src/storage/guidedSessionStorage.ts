@@ -4,6 +4,7 @@ import { CompletedFlightSession, GuidedSession, TastingFlight } from '../types';
 const SESSION_KEY = 'guided_session_active';
 const FLIGHT_KEY = 'guided_session_flight';
 const COMPLETED_KEY = 'completed_flight_sessions';
+const FLIGHT_OVERRIDE_PREFIX = 'flight_override_';
 
 export async function saveGuidedSession(session: GuidedSession): Promise<void> {
   await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -51,6 +52,16 @@ export async function loadActiveSessionForFlight(flightId: string): Promise<Guid
   if (!raw) return null;
   const session: GuidedSession = JSON.parse(raw);
   return session.flightId === flightId ? session : null;
+}
+
+export async function saveFlightOverride(flight: TastingFlight): Promise<void> {
+  await AsyncStorage.setItem(`${FLIGHT_OVERRIDE_PREFIX}${flight.id}`, JSON.stringify(flight));
+}
+
+export async function loadFlightOverride(flightId: string): Promise<TastingFlight | null> {
+  const raw = await AsyncStorage.getItem(`${FLIGHT_OVERRIDE_PREFIX}${flightId}`);
+  if (!raw) return null;
+  return JSON.parse(raw);
 }
 
 export function createGuidedSession(params: {

@@ -26,4 +26,5 @@ export type RootStackParamList = {
   GuidedSession: { sessionId: string };
   MyFlights: undefined;
   CompletedFlightDetail: { sessionId: string };
+  CustomFlight: { flightId: string; flightName: string };
 };

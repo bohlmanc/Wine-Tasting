@@ -30,20 +30,26 @@ async function openInstagram() {
 import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
 import { loadWines, deleteWine } from '../storage/wineStorage';
+import { loadCompletedFlightSessions } from '../storage/guidedSessionStorage';
 import { Wine } from '../types';
 
 export default function MyProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [wines, setWines] = useState<Wine[]>([]);
+  const [flightCount, setFlightCount] = useState(0);
   useEffect(() => {
-    loadWines().then(setWines);
+    loadWines().then(loaded => {
+      setWines(loaded);
+      const customFlightIds = new Set(
+        loaded.filter(w => w.flightId && !w.guidedSessionId).map(w => w.flightId!)
+      );
+      loadCompletedFlightSessions().then(sessions => {
+        setFlightCount(sessions.length + customFlightIds.size);
+      });
+    });
   }, []);
 
   const likedCount = wines.filter(w => w.liked === true).length;
-  const avgRating =
-    wines.filter(w => w.rating != null).length > 0
-      ? (wines.reduce((sum, w) => sum + (w.rating ?? 0), 0) / wines.filter(w => w.rating != null).length).toFixed(1)
-      : null;
 
   const countryBreakdown = wines.reduce<Record<string, number>>((acc, w) => {
     if (w.country) acc[w.country] = (acc[w.country] ?? 0) + 1;
@@ -110,7 +116,7 @@ export default function MyProfileScreen() {
         <View style={styles.statsRow}>
           <StatBox label="Total Wines" value={String(wines.length)} onPress={() => navigation.navigate('MyTastings')} />
           <StatBox label="Liked" value={String(likedCount)} color={Colors.liked} />
-          <StatBox label="Avg Rating" value={avgRating ?? '—'} />
+          <StatBox label="Flights" value={String(flightCount)} onPress={() => navigation.navigate('MyFlights')} />
         </View>
         {/* Style breakdown */}
         {Object.keys(styleBreakdown).length > 0 && (

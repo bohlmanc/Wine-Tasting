@@ -30,24 +30,28 @@ const EMOJI_REACTIONS = ['😍', '😋', '🤔', '😐', '😬', '🤢'];
 
 export default function ThinkScreen() {
   const navigation = useNavigation<Nav>();
-  const { tasting, reset, setTastingType, setCustomFlight } = useWineTasting();
+  const { tasting, reset, setCustomFlight } = useWineTasting();
   const guidedSessionId = tasting.guidedSessionId ?? null;
   const customFlightId = tasting.customFlightId ?? null;
   const customFlightName = tasting.customFlightName ?? null;
 
   const [liked, setLiked] = useState<boolean | null>(tasting.liked ?? null);
   const [rating, setRating] = useState<number | null>(tasting.rating ?? null);
-  const [emoji, setEmoji] = useState<string>(tasting.notes?.match(/^(😍|😋|🤔|😐|😬|🤢)/)?.[0] ?? '');
-  const [notes, setNotes] = useState(tasting.notes ?? '');
+  const savedEmoji = tasting.notes?.match(/^(😍|😋|🤔|😐|😬|🤢)/)?.[0] ?? '';
+  const [emoji, setEmoji] = useState<string>(savedEmoji);
+  const [notes, setNotes] = useState(
+    savedEmoji ? (tasting.notes ?? '').slice(savedEmoji.length).trimStart() : (tasting.notes ?? '')
+  );
 
   const handleDone = async () => {
+    const existingId = tasting.id;
     const wine: Wine = {
       ...(tasting as Wine),
-      id: tasting.id ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      id: existingId ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       createdAt: tasting.createdAt ?? new Date().toISOString(),
       liked,
       rating,
-      notes,
+      notes: emoji ? `${emoji} ${notes}`.trim() : notes,
     };
 
     try {
@@ -86,33 +90,24 @@ export default function ThinkScreen() {
           flightName: customFlightName,
         });
         reset();
-        Alert.alert(
-          'Wine Saved!',
-          `Added to "${customFlightName}". Add another wine to this flight?`,
-          [
-            {
-              text: 'End Flight',
-              onPress: () => {
-                navigation.reset({ index: 1, routes: [{ name: 'Home' }, { name: 'MyTastings' }] });
-              },
-            },
-            {
-              text: 'Add Next Wine',
-              style: 'cancel',
-              onPress: () => {
-                setTastingType('full');
-                setCustomFlight(customFlightId, customFlightName);
-                navigation.navigate('BasicInfo');
-              },
-            },
-          ]
-        );
+        setCustomFlight(customFlightId, customFlightName);
+        navigation.reset({
+          index: 1,
+          routes: [
+            { name: 'Home' },
+            { name: 'CustomFlight', params: { flightId: customFlightId, flightName: customFlightName } },
+          ],
+        });
         return;
       }
 
       await saveWine(wine);
       reset();
-      navigation.reset({ index: 1, routes: [{ name: 'Home' }, { name: 'MyTastings' }] });
+      if (existingId) {
+        navigation.reset({ index: 2, routes: [{ name: 'Home' }, { name: 'MyTastings' }, { name: 'WineDetail', params: { wineId: wine.id } }] });
+      } else {
+        navigation.reset({ index: 1, routes: [{ name: 'Home' }, { name: 'MyTastings' }] });
+      }
     } catch {
       Alert.alert('Error', 'Could not save your tasting. Please try again.');
     }

@@ -336,7 +336,7 @@ function WineCard({
         {wine.grapes && wine.grapes.length > 0 && (
           <Text style={styles.cardGrapes} numberOfLines={1}>{wine.grapes.join(', ')}</Text>
         )}
-        {wine.guidedSessionId && wine.flightName ? (
+        {wine.flightName ? (
           <View style={styles.flightBadge}>
             <Text style={styles.flightBadgeText} numberOfLines={1}>
               🍾 {wine.wineryName ? `${wine.wineryName} · ` : ''}{wine.flightName}

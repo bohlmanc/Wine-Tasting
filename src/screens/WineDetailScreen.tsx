@@ -9,6 +9,7 @@ import {
   ScrollView,
   Image,
   Alert,
+  Modal,
 } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -28,34 +29,23 @@ export default function WineDetailScreen() {
   const { loadWine } = useWineTasting();
   const { wineId } = route.params;
   const [wine, setWine] = useState<Wine | null>(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   useEffect(() => {
     getWine(wineId).then(setWine);
   }, [wineId]);
 
-  const handleUpdateTasting = () => {
+  const startEdit = (screen: 'BasicInfo' | 'WineStyle' | 'Think') => {
     if (!wine) return;
-    const isQuick = wine.tastingType === 'quick';
+    setShowUpdateModal(false);
+    loadWine(wine);
+    navigation.navigate(screen);
+  };
 
-    type EditScreen = 'BasicInfo' | 'WineStyle' | 'LookColor' | 'SmellMain' | 'Taste' | 'Think';
-    const startEdit = (screen: EditScreen) => {
-      loadWine(wine);
-      navigation.navigate(screen);
-    };
-
-    const buttons: { text: string; onPress?: () => void; style?: 'cancel' | 'default' | 'destructive' }[] = [
-      { text: 'Basic Info', onPress: () => startEdit('BasicInfo') },
-      ...(isQuick ? [] : [
-        { text: 'Wine Style', onPress: () => startEdit('WineStyle') },
-        { text: 'Look', onPress: () => startEdit('LookColor') },
-        { text: 'Aromas', onPress: () => startEdit('SmellMain') },
-        { text: 'Taste & Structure', onPress: () => startEdit('Taste') },
-      ]),
-      { text: 'My Thoughts', onPress: () => startEdit('Think') },
-      { text: 'Cancel', style: 'cancel' },
-    ];
-
-    Alert.alert('Update Tasting', 'Which section would you like to update?', buttons);
+  const handleCompleteGuidedTasting = () => {
+    if (!wine) return;
+    loadWine({ ...wine, tastingType: 'full' });
+    navigation.navigate('WineStyle');
   };
 
   if (!wine) {
@@ -101,6 +91,7 @@ export default function WineDetailScreen() {
             {wine.vintage ? <Text style={styles.metaItem}>{wine.vintage}</Text> : null}
             {wine.country ? <Text style={styles.metaItem}>{wine.country}</Text> : null}
             {wine.region ? <Text style={styles.metaItem}>{wine.region}</Text> : null}
+            {wine.abv ? <Text style={styles.metaItem}>{wine.abv}%</Text> : null}
           </View>
           {wine.grapes.length > 0 && (
             <Text style={styles.grapes}>{wine.grapes.join(', ')}</Text>
@@ -129,9 +120,14 @@ export default function WineDetailScreen() {
             )}
           </View>
 
-          <TouchableOpacity style={styles.updateBtn} onPress={handleUpdateTasting}>
+          <TouchableOpacity style={styles.updateBtn} onPress={() => setShowUpdateModal(true)}>
             <Text style={styles.updateBtnText}>Update Tasting</Text>
           </TouchableOpacity>
+          {wine.tastingType === 'quick' && (
+            <TouchableOpacity style={styles.completeBtn} onPress={handleCompleteGuidedTasting}>
+              <Text style={styles.completeBtnText}>Complete Guided Tasting</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Sight section */}
@@ -171,6 +167,47 @@ export default function WineDetailScreen() {
 
         <View style={{ height: 24 }} />
       </ScrollView>
+
+      <Modal
+        visible={showUpdateModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowUpdateModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowUpdateModal(false)}
+        >
+          <View style={styles.updateModalSheet} onStartShouldSetResponder={() => true}>
+            <View style={styles.updateModalHeader}>
+              <Text style={styles.updateModalTitle}>Update Tasting</Text>
+              <TouchableOpacity
+                onPress={() => setShowUpdateModal(false)}
+                style={styles.closeBtn}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={styles.closeBtnText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.updateOption} onPress={() => startEdit('BasicInfo')}>
+              <Text style={styles.updateOptionText}>Basic Info</Text>
+              <Text style={styles.updateOptionArrow}>›</Text>
+            </TouchableOpacity>
+            {wine.tastingType === 'quick' ? (
+              <TouchableOpacity style={styles.updateOption} onPress={() => startEdit('Think')}>
+                <Text style={styles.updateOptionText}>My Thoughts</Text>
+                <Text style={styles.updateOptionArrow}>›</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.updateOption} onPress={() => startEdit('WineStyle')}>
+                <Text style={styles.updateOptionText}>Tasting Notes</Text>
+                <Text style={styles.updateOptionArrow}>›</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -360,5 +397,72 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
     fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+  },
+  completeBtn: {
+    marginTop: 8,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    backgroundColor: Colors.primaryLight,
+  },
+  completeBtnText: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '800',
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  updateModalSheet: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingHorizontal: 16,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+  },
+  updateModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  updateModalTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    color: Colors.text,
+  },
+  closeBtn: {
+    padding: 4,
+  },
+  closeBtnText: {
+    fontSize: 16,
+    color: Colors.textMuted,
+    fontWeight: '700',
+  },
+  updateOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 18,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  updateOptionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  updateOptionArrow: {
+    fontSize: 22,
+    color: Colors.textMuted,
   },
 });
