@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './types';
+import { navigationRef } from './navigationRef';
 
 import HomeScreen from '../screens/HomeScreen';
 import AddWineTypeScreen from '../screens/AddWineTypeScreen';
@@ -36,7 +37,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         initialRouteName="Home"
         screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
