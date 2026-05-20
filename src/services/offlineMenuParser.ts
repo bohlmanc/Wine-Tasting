@@ -52,7 +52,9 @@ function extractCountry(text: string): string {
   const direct = WINE_COUNTRIES.find(c => wordBoundaryMatch(text, c));
   if (direct) return direct;
   for (const [country, regions] of Object.entries(WINE_REGIONS)) {
-    if (regions.some(r => wordBoundaryMatch(text, r))) return country;
+    // Skip 2-char abbreviations (US state codes) — case-insensitive matching causes
+    // common English words like "or", "in", "me" to false-match as Oregon/Indiana/Maine.
+    if (regions.some(r => r.length > 2 && wordBoundaryMatch(text, r))) return country;
   }
   return '';
 }
@@ -60,7 +62,7 @@ function extractCountry(text: string): string {
 function extractRegion(text: string, country: string): string {
   const regions = WINE_REGIONS[country];
   if (!regions) return '';
-  const matches = regions.filter(r => wordBoundaryMatch(text, r));
+  const matches = regions.filter(r => r.length > 2 && wordBoundaryMatch(text, r));
   if (!matches.length) return '';
   const best = matches.reduce((a, r) => {
     const aWords = a.split(/\s+/).length;
@@ -172,39 +174,60 @@ const YEAR_ONLY = /^\d{4}$/;
 const ABV_ONLY = /^\d{1,2}[.,]\d\s*%?$/;
 const GRAPE_HEADER = /^(cabernet|merlot|chardonnay|pinot|syrah|shiraz|zinfandel|sauvignon|riesling|grenache|viognier)\s*$/i;
 
-function extractNameFromSegment(segment: string): string {
+function extractNameInfo(segment: string): { name: string; lineIndex: number } {
   const lines = segment.split('\n').map(l => l.trim()).filter(Boolean);
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     if (SECTION_HEADER.test(line)) continue;
     if (YEAR_ONLY.test(line)) continue;
     if (ABV_ONLY.test(line)) continue;
     if (GRAPE_HEADER.test(line)) continue;
-    // Skip lines that are only a price
     if (PRICE_ONLY.test(line) && extractPrice(line) && line.replace(/[$€£\d.,\s/a-zA-Z]/g, '').length === 0) continue;
 
-    let name = line
-      .replace(/^[\d]+[.)]\s*/, '')                    // numbered prefix
-      .replace(/\s*[$€£][\d.,]+[^\w]*$/, '')            // trailing price
-      .replace(/\b(19[5-9]\d|20[0-2]\d)\b/g, '')        // all vintage years, anywhere
-      .replace(/\s*[|–—]\s*.*$/, '')                    // pipe/dash suffix
-      .replace(/\s+/g, ' ')                             // collapse gaps left by year removal
+    const name = line
+      .replace(/^[\d]+[.)]\s*/, '')
+      .replace(/\s*[$€£][\d.,]+[^\w]*$/, '')
+      .replace(/\b(19[5-9]\d|20[0-2]\d)\b/g, '')
+      .replace(/\s*[|–—]\s*.*$/, '')
+      .replace(/\s+/g, ' ')
       .trim();
 
-    if (name.length >= 2) return name;
+    if (name.length >= 2) return { name, lineIndex: i };
   }
-  return '';
+  return { name: '', lineIndex: -1 };
+}
+
+function extractNameFromSegment(segment: string): string {
+  return extractNameInfo(segment).name;
 }
 
 // ── Full segment parser ───────────────────────────────────────────────────────
 
 function parseSegment(segment: string): Omit<FlightPendingWine, 'id'> {
-  const country = extractCountry(segment);
+  const { name, lineIndex } = extractNameInfo(segment);
+  const lines = segment.split('\n').map(l => l.trim()).filter(Boolean);
+
+  // Search for country/region in non-name lines first. Geographic terms embedded
+  // in a wine's name (e.g. "Loire-style blend", "Côtes du Rhône Grenache") should
+  // not drive country detection. Appellation wines whose name IS the region
+  // (e.g. "Chablis", "Sancerre", "Barolo") are caught by the name-text fallback.
+  const residual = lineIndex >= 0
+    ? lines.filter((_, i) => i !== lineIndex).join('\n')
+    : segment;
+
+  let country = extractCountry(residual);
+  let region = extractRegion(residual, country);
+  if (!country) {
+    country = extractCountry(name);
+    region = extractRegion(name, country);
+  }
+
   return {
-    name: extractNameFromSegment(segment),
+    name,
     vintage: extractVintage(segment),
     grapes: extractGrapes(segment),
     country,
-    region: extractRegion(segment, country),
+    region,
     abv: extractAbv(segment),
     price: extractPrice(segment),
   };

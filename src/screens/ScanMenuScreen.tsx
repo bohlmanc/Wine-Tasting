@@ -68,7 +68,7 @@ export default function ScanMenuScreen() {
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: ['images'],
         quality: 0.9,
       });
       if (!result.canceled && result.assets[0]) {
@@ -157,7 +157,10 @@ export default function ScanMenuScreen() {
       await savePendingWines(flightId, wines);
       await saveOriginalWines(flightId, wines);
     }
-    navigation.navigate('CustomFlight', { flightId, flightName: name });
+    navigation.reset({
+      index: 1,
+      routes: [{ name: 'Home' }, { name: 'CustomFlight', params: { flightId, flightName: name } }],
+    });
   }
 
   const canScan = !!imageUri && !scanning;

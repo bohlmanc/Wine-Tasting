@@ -26,13 +26,13 @@ export async function scanLabelOffline(
   return parseWineText(combined);
 }
 
-function extractVintage(text: string): string {
+export function extractVintage(text: string): string {
   // Match a 4-digit year in the realistic wine vintage range
   const m = text.match(/\b(19[5-9]\d|20[0-2]\d)\b/);
   return m ? m[1] : '';
 }
 
-function extractAbv(text: string): string {
+export function extractAbv(text: string): string {
   // 1. Decimal number immediately followed by % (most reliable signal)
   const p1 = text.match(/(\d{1,2}[.,]\d)\s*%/i);
   if (p1) return `${p1[1].replace(',', '.')}%`;
@@ -82,7 +82,7 @@ function extractAbv(text: string): string {
   return '';
 }
 
-function extractProducer(text: string): string {
+export function extractProducer(text: string): string {
   // Same-line patterns: "Produced [and] [Bottled] by Name"
   const sameLinePatterns: RegExp[] = [
     /(?:grown[, ]+)?(?:produced|crafted|made|estate)\s+(?:(?:and|&)\s+)?(?:bottled|vinified|cellared\s+)?(?:(?:and|&)\s+)?(?:bottled\s+)?by\s*:?\s*([^,\n]{3,60})/i,
@@ -115,7 +115,7 @@ function normalizeText(str: string): string {
   return str.normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
 
-function extractGrapes(text: string): string[] {
+export function extractGrapes(text: string): string[] {
   const normalized = normalizeText(text).toLowerCase();
   const matched = GRAPE_VARIETIES.filter(grape =>
     // Handle slash variants like "Syrah/Shiraz" — either side counts as a match
@@ -139,7 +139,7 @@ function wordBoundaryMatch(text: string, term: string): boolean {
   return new RegExp(`\\b${escaped}\\b`, 'i').test(normText);
 }
 
-function extractCountry(text: string): string {
+export function extractCountry(text: string): string {
   const direct = WINE_COUNTRIES.find(c => wordBoundaryMatch(text, c));
   if (direct) return direct;
   for (const [country, regions] of Object.entries(WINE_REGIONS)) {
@@ -148,7 +148,7 @@ function extractCountry(text: string): string {
   return '';
 }
 
-function extractRegion(text: string, country: string): string {
+export function extractRegion(text: string, country: string): string {
   const regions = WINE_REGIONS[country];
   if (!regions) return '';
   const matches = regions.filter(r => wordBoundaryMatch(text, r));
@@ -167,7 +167,7 @@ function extractRegion(text: string, country: string): string {
   return best;
 }
 
-function extractImporter(text: string): string {
+export function extractImporter(text: string): string {
   // Prefix-based patterns (most reliable)
   const prefixPatterns: RegExp[] = [
     // "Imported by ..." / "Imported and distributed by ..." / "Imported & bottled by ..."
@@ -192,7 +192,7 @@ function extractImporter(text: string): string {
   return '';
 }
 
-function parseWineText(text: string): ScannedLabelData {
+export function parseWineText(text: string): ScannedLabelData {
   const country = extractCountry(text);
   return {
     vintage: extractVintage(text),

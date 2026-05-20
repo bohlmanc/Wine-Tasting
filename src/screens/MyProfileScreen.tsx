@@ -29,7 +29,7 @@ async function openInstagram() {
 }
 import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
-import { loadWines, deleteWine } from '../storage/wineStorage';
+import { loadWines, clearAllData } from '../storage/wineStorage';
 import { loadCompletedFlightSessions } from '../storage/guidedSessionStorage';
 import { Wine } from '../types';
 
@@ -72,18 +72,17 @@ export default function MyProfileScreen() {
 
   const handleClearAll = () => {
     Alert.alert(
-      'Clear All Wines',
-      'This will permanently delete all your saved wines. This cannot be undone.',
+      'Clear All Data',
+      'This will permanently delete all saved wines and flights. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete All',
           style: 'destructive',
           onPress: async () => {
-            for (const wine of wines) {
-              await deleteWine(wine.id);
-            }
+            await clearAllData();
             setWines([]);
+            setFlightCount(0);
           },
         },
       ]
@@ -158,12 +157,12 @@ export default function MyProfileScreen() {
           </Section>
         )}
 
-        {/* TODO: Remove "Clear All Wines" before launch — dev/testing tool only */}
-        {__DEV__ && wines.length > 0 && (
+        {/* TODO: Remove "Clear All Data" before launch — dev/testing tool only */}
+        {__DEV__ && (wines.length > 0 || flightCount > 0) && (
           <Section title="Data">
             <Text style={styles.devOnlyLabel}>DEV BUILD ONLY — not in release</Text>
             <TouchableOpacity style={styles.dangerBtn} onPress={handleClearAll}>
-              <Text style={styles.dangerBtnText}>Clear All Wines</Text>
+              <Text style={styles.dangerBtnText}>Clear All Data</Text>
             </TouchableOpacity>
           </Section>
         )}

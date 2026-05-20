@@ -36,6 +36,17 @@ Wineries sign up via a separate web admin portal, input tasting flights and wine
 
 **Key constraint**: The existing tasting flow screens (`BasicInfo` → `Think`) are reused as-is. The guided session only adds an optional `guidedSessionId` param so `Think` knows to return to the session instead of `Home`.
 
+## Unit tests
+
+Run with `npm test`. Tests live in `src/__tests__/` and follow the layer structure in the README's Testing section.
+
+**Write unit tests for every new feature that has testable pure logic**, specifically:
+- New parser functions in `offlineLabelParser.ts` — add cases to `offlineLabelParser.test.ts`
+- New storage modules — add a `<module>.test.ts` using the same AsyncStorage mock pattern as the existing storage tests
+- Any new pure utility functions (helpers, formatters, validators)
+
+Component and E2E tests are Layer 2/3 in the README — add those as coverage gaps become apparent, but Layer 1 unit tests are the minimum bar for new logic.
+
 ## Known gotchas
 
 ### GestureHandlerRootView is required
