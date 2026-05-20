@@ -91,6 +91,12 @@ Requires an Apple Developer account (free tier works for sideloading).
 npx expo run:ios --device
 ```
 
+4. If you want to sideload and run without needing the phone connected, run:
+
+```
+npx expo run:ios --configuration Release
+```
+
 If Xcode complains about provisioning, open `ios/WinePocketPal.xcworkspace`, select your target → **Signing & Capabilities**, and set your Team.
 
 > **Xcode 26 note:** Several compatibility patches are applied via `patch-package` and Podfile post_install hooks. See `docs/ios-xcode26-build-issues.md` if the iOS build fails.
