@@ -100,15 +100,8 @@ export default function MyProfileScreen() {
         <View style={styles.statsRow}>
           <StatBox label="Total Wines" value={String(wines.length)} onPress={() => navigation.navigate('MyTastings')} />
           <StatBox label="Flights" value={String(flightCount)} onPress={() => navigation.navigate('MyFlights')} />
+          <StatBox label="Calendar" value="📅" onPress={() => navigation.navigate('TastingCalendar')} />
         </View>
-
-        <TouchableOpacity
-          style={[styles.calendarBtn, { backgroundColor: Colors.btnCalendar }]}
-          onPress={() => navigation.navigate('TastingCalendar')}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.calendarBtnText}>Tasting Calendar</Text>
-        </TouchableOpacity>
         {/* Style breakdown */}
         {Object.keys(styleBreakdown).length > 0 && (
           <Section title="By Style">
@@ -290,18 +283,4 @@ const styles = StyleSheet.create({
   footerText: { fontSize: 12, color: Colors.textMuted },
   footerRow: { flexDirection: 'row', alignItems: 'center' },
   link: { textDecorationLine: 'underline' },
-  calendarBtn: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 10,
-    paddingVertical: 22,
-    marginTop: 12,
-    alignSelf: 'stretch',
-  },
-  calendarBtnText: {
-    fontSize: 22,
-    fontWeight: '800',
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-    color: Colors.white,
-  },
 });

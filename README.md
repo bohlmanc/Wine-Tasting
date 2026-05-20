@@ -139,3 +139,104 @@ Both platforms are built and submitted locally (not via EAS cloud builds).
 | `docs/camera-launch-issue.md` | Android camera not opening on first tap — symptoms and next steps |
 | `docs/gradle-windows-build.md` | Windows Gradle deadlock patches |
 | `docs/ios-xcode26-build-issues.md` | Xcode 26 compatibility patches |
+
+---
+
+## Testing
+
+### How tests stay out of the production bundle
+
+Metro (the JS bundler) only bundles files reachable from the app entry point. Test files — anything in `__tests__/` directories or matching `*.test.ts` / `*.spec.ts` — are never imported from `App.tsx`, so Metro never touches them. No special config is needed to exclude them; they simply don't exist from the bundler's perspective.
+
+---
+
+### Layer 1 — Unit tests (Jest)
+
+**Best for:** Pure logic functions that don't touch native modules.
+
+**Highest-value target: `src/services/offlineLabelParser.ts`**
+
+The offline label parser contains a chain of independently testable pure functions — `extractVintage`, `extractAbv`, `extractGrapes`, `extractCountry`, `extractRegion`, `extractProducer`, `extractImporter` — that already have documented edge cases (OCR dropping decimals, diacritic normalization, AVA-to-state mapping). These are complex regex chains with high regression risk every time a pattern is adjusted. Unit tests here pay back immediately.
+
+Other good targets:
+- `src/storage/wineStorage.ts` — CRUD logic (mock `AsyncStorage` with its official jest mock)
+- `src/storage/customFlightStorage.ts`, `guidedSessionStorage.ts` — same pattern
+
+**Tooling:** `jest`, `jest-expo` (Expo's preset; handles Metro's module aliases and RN transforms), `@types/jest`.
+
+```bash
+npm install --save-dev jest jest-expo @types/jest
+```
+
+Add to `package.json`:
+```json
+"jest": {
+  "preset": "jest-expo"
+}
+```
+
+---
+
+### Layer 2 — Component tests (React Native Testing Library)
+
+**Best for:** Screen-level behavior and context state transitions, without needing a device.
+
+Native modules (ML Kit, camera, `expo-image-picker`) are mocked at the module level; `AsyncStorage` is mocked via its official jest mock. This lets you assert that tapping "Next" advances the tasting flow, that required fields surface validation errors, or that `WineTastingContext` accumulates the right partial wine state — all without building or deploying anything.
+
+Good targets:
+- `WineTastingContext` — verify state threads correctly through `BasicInfo` → `Think`
+- `BasicInfoScreen` — required field validation, vintage format constraints
+- `ThinkScreen` — rating widget interaction, correct navigation target when `guidedSessionId` is set vs. not
+- `CompletedFlightDetailScreen` — `completedWineIds` mapping (the skipped-wines bug class originates here)
+
+**Tooling:** `@testing-library/react-native`, `@testing-library/jest-native`.
+
+```bash
+npm install --save-dev @testing-library/react-native @testing-library/jest-native
+```
+
+---
+
+### Layer 3 — E2E tests (Maestro)
+
+**Best for:** Full user flows on a real device or emulator. Catches integration failures that unit/component tests miss — native module interactions, navigation stack state, AsyncStorage round-trips, and layout issues.
+
+Maestro uses simple YAML "flow" files that tap through the UI by accessibility label or visible text, with no code changes to the app. Flows live in an `e2e/` directory and are run from the terminal separately from any build step.
+
+High-value flows to cover first:
+
+| Flow | Why it matters |
+|---|---|
+| Quick tasting (manual entry) | Core happy path; exercises every persistence layer |
+| Full guided tasting (all screens) | Highest regression surface in the app |
+| Winery check-in → guided flight → all wines done | Covers Supabase + guided session integration |
+| Custom flight: create, add wines, complete | Covers `customFlightStorage` end-to-end |
+
+**Tooling:** [Maestro CLI](https://maestro.mobile.dev/). On Windows, download the binary from the Maestro releases page; on macOS/Linux, use their install script. No changes to the app are needed.
+
+```bash
+# Run a single flow against a connected device or emulator
+maestro test e2e/quick-tasting.yaml
+
+# Run all flows
+maestro test e2e/
+```
+
+---
+
+### What can't be meaningfully unit-tested
+
+| Feature | Reason | How to verify |
+|---|---|---|
+| `launchCameraAsync` | Native Activity; can't mock realistically | Maestro E2E or manual |
+| ML Kit OCR (`TextRecognition.recognize`) | Native binary; result depends on real image data | Manual with physical labels; unit-test the *parser logic* separately |
+| Supabase network calls | External service | Mock in component tests; smoke-test against dev Supabase project manually |
+
+---
+
+### Recommended implementation order
+
+1. **`jest-expo` setup + `offlineLabelParser.ts` unit tests** — highest ROI for the least setup effort; pure functions, zero mocks needed.
+2. **AsyncStorage mock + storage layer tests** — `wineStorage`, `customFlightStorage`, `guidedSessionStorage`.
+3. **Maestro flows for quick tasting and guided session** — catches integration issues unit tests can't see.
+4. **RNTL component tests** — add as coverage gaps become apparent, especially around context state threading and `CompletedFlightDetailScreen` logic.

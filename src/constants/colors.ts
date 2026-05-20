@@ -1,20 +1,20 @@
 export const Colors = {
-  primary: '#A05578',
-  primaryLight: '#E8C8D4',
-  primaryDark: '#7A3A58',
-  homeHeaderBg: '#DFC0CC',
+  primary: '#b4436c',
+  primaryLight: '#f0c8d8',
+  primaryDark: '#684551',
+  homeHeaderBg: '#ecd0da',
 
-  btnAdd: '#A05578',
+  btnAdd: '#b4436c',
   btnView: '#3D7AB5',
-  btnCalendar: '#7B4FA6',
-  btnGuide: '#4A8585',
+  btnCalendar: '#684551',
+  btnGuide: '#1aa398',
   btnProfile: '#8B1A1A',
-  btnWinery: '#8B6914',
+  btnWinery: '#2b4141',
   infoBlue: '#4B7BB5',
   infoBlueLight: '#D8E8F8',
 
   // Smell category border colors
-  fruitColor: '#A05578',
+  fruitColor: '#b4436c',
   herbsColor: '#C87828',
   outdoorColor: '#2E7C2E',
   otherColor: '#3D7AB5',
@@ -26,21 +26,21 @@ export const Colors = {
   dislikedBg: '#E8C8C8',
 
   // Gauge fill
-  gaugeFill: '#E0C0CC',
-  gaugeTrack: '#DDDDDD',
+  gaugeFill: '#e8b8c8',
+  gaugeTrack: '#dbdbdb',
 
   // General
   text: '#1A1A1A',
   textMuted: '#666666',
   background: '#FFFFFF',
   surface: '#F8F4F6',
-  border: '#E0D0D8',
+  border: '#dbdbdb',
   white: '#FFFFFF',
   black: '#000000',
 
   // Tag backgrounds
-  tagDark: '#6B3A50',
+  tagDark: '#684551',
   tagBlue: '#3D7AB5',
-  tagTeal: '#4A8585',
+  tagTeal: '#1aa398',
   tagRed: '#8B1A1A',
 };
