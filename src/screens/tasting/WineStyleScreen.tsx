@@ -6,6 +6,7 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
+  ScrollView,
 } from 'react-native';
 import Svg, { Path, Ellipse, Circle } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
@@ -64,7 +65,7 @@ export default function WineStyleScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <AppHeader title="Wine Style" />
-      <View style={styles.container}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
         <View style={styles.topRow}>
           <InfoModal
             title="Wine Style"
@@ -89,7 +90,8 @@ export default function WineStyleScreen() {
             );
           })}
         </View>
-      </View>
+        <View style={{ height: 20 }} />
+      </ScrollView>
 
       <View style={styles.nextBar}>
         <TouchableOpacity style={[styles.nextBtn, !selected && styles.nextBtnDisabled]} onPress={handleNext} disabled={!selected}>
@@ -102,7 +104,8 @@ export default function WineStyleScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
-  container: { flex: 1, backgroundColor: Colors.background, padding: 20 },
+  scroll: { flex: 1, backgroundColor: Colors.background },
+  container: { padding: 20 },
   topRow: { alignItems: 'center', marginBottom: 8 },
   heading: {
     fontSize: 22,

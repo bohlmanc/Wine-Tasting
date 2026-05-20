@@ -7,11 +7,15 @@ import {
   Modal,
   SafeAreaView,
   Platform,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { Colors } from '../constants/colors';
+import { useWineTasting } from '../context/WineTastingContext';
+import { saveWine } from '../storage/wineStorage';
+import { Wine } from '../types';
 
 interface AppHeaderProps {
   title: string;
@@ -24,6 +28,8 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 export default function AppHeader({ title, showBack = true, onBack }: AppHeaderProps) {
   const navigation = useNavigation<Nav>();
   const [menuVisible, setMenuVisible] = useState(false);
+  const { tasting, reset } = useWineTasting();
+  const tastingInProgress = !tasting.id && Boolean(tasting.producer || tasting.name || tasting.style);
 
   const handleBack = () => {
     if (onBack) {
@@ -69,7 +75,35 @@ export default function AppHeader({ title, showBack = true, onBack }: AppHeaderP
                 style={styles.menuItem}
                 onPress={() => {
                   setMenuVisible(false);
-                  navigation.navigate(item.screen as any);
+                  if (item.screen === 'Home' && tastingInProgress) {
+                    Alert.alert(
+                      'Tasting in Progress',
+                      'What would you like to do with your current tasting?',
+                      [
+                        {
+                          text: 'Save to My Tastings',
+                          onPress: async () => {
+                            const wine: Wine = {
+                              ...(tasting as Wine),
+                              id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                              createdAt: tasting.createdAt ?? new Date().toISOString(),
+                            };
+                            await saveWine(wine);
+                            reset();
+                            navigation.navigate('Home');
+                          },
+                        },
+                        {
+                          text: 'Discard Tasting',
+                          style: 'destructive',
+                          onPress: () => { reset(); navigation.navigate('Home'); },
+                        },
+                        { text: 'Cancel', style: 'cancel' },
+                      ]
+                    );
+                  } else {
+                    navigation.navigate(item.screen as any);
+                  }
                 }}
               >
                 <Text style={styles.menuText}>{item.label}</Text>

@@ -23,7 +23,7 @@ import { RootStackParamList } from '../../navigation/types';
 import AppHeader from '../../components/AppHeader';
 import InfoModal from '../../components/InfoModal';
 import { Colors } from '../../constants/colors';
-import { WINE_COUNTRIES, WINE_REGIONS, GRAPE_VARIETIES } from '../../constants/wineData';
+import { WINE_COUNTRIES, GRAPE_VARIETIES, getRegions, getSubregions } from '../../constants/wineData';
 import { useWineTasting } from '../../context/WineTastingContext';
 import { saveWine } from '../../storage/wineStorage';
 import { loadCustomGrapes, saveCustomGrape, deleteCustomGrape } from '../../storage/customGrapesStorage';
@@ -57,6 +57,146 @@ function PickerModal({
           <FlatList
             data={items}
             keyExtractor={i => i}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.pickerItem} onPress={() => { onSelect(item); onClose(); }}>
+                <Text style={styles.pickerItemText}>{item}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function RegionPickerModal({
+  visible,
+  country,
+  onSelect,
+  onClose,
+}: {
+  visible: boolean;
+  country: string;
+  onSelect: (region: string) => void;
+  onClose: () => void;
+}) {
+  const [query, setQuery] = useState('');
+  const regions = getRegions(country);
+  const trimmed = query.trim();
+  const filtered = trimmed
+    ? regions.filter(r => r.toLowerCase().includes(trimmed.toLowerCase()))
+    : regions;
+  const canUseCustom = trimmed.length > 0 && !regions.some(r => r.toLowerCase() === trimmed.toLowerCase());
+
+  return (
+    <Modal visible={visible} transparent animationType="slide">
+      <View style={styles.pickerOverlay}>
+        <View style={styles.pickerSheet}>
+          <View style={styles.pickerHeader}>
+            <Text style={styles.pickerTitle}>Select Region</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Text style={styles.pickerClose}>Done</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.grapeSearchWrap}>
+            <TextInput
+              style={styles.grapeSearchInput}
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Search or type a region..."
+              placeholderTextColor="#aaa"
+              autoCorrect={false}
+              autoCapitalize="words"
+            />
+            {query.length > 0 && (
+              <TouchableOpacity onPress={() => setQuery('')} style={styles.grapeSearchClear}>
+                <Text style={styles.grapeSearchClearText}>×</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {canUseCustom && (
+            <TouchableOpacity
+              style={styles.addCustomGrape}
+              onPress={() => { onSelect(trimmed); onClose(); }}
+            >
+              <Text style={styles.addCustomGrapeText}>+ Use "{trimmed}" as region</Text>
+            </TouchableOpacity>
+          )}
+          <FlatList
+            data={filtered}
+            keyExtractor={i => i}
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.pickerItem} onPress={() => { onSelect(item); onClose(); }}>
+                <Text style={styles.pickerItemText}>{item}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function SubregionPickerModal({
+  visible,
+  country,
+  region,
+  onSelect,
+  onClose,
+}: {
+  visible: boolean;
+  country: string;
+  region: string;
+  onSelect: (subregion: string) => void;
+  onClose: () => void;
+}) {
+  const [query, setQuery] = useState('');
+  const subregions = getSubregions(country, region);
+  const trimmed = query.trim();
+  const filtered = trimmed
+    ? subregions.filter(s => s.toLowerCase().includes(trimmed.toLowerCase()))
+    : subregions;
+  const canUseCustom = trimmed.length > 0 && !subregions.some(s => s.toLowerCase() === trimmed.toLowerCase());
+
+  return (
+    <Modal visible={visible} transparent animationType="slide">
+      <View style={styles.pickerOverlay}>
+        <View style={styles.pickerSheet}>
+          <View style={styles.pickerHeader}>
+            <Text style={styles.pickerTitle}>Select Subregion</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Text style={styles.pickerClose}>Done</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.grapeSearchWrap}>
+            <TextInput
+              style={styles.grapeSearchInput}
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Search or type a subregion..."
+              placeholderTextColor="#aaa"
+              autoCorrect={false}
+              autoCapitalize="words"
+            />
+            {query.length > 0 && (
+              <TouchableOpacity onPress={() => setQuery('')} style={styles.grapeSearchClear}>
+                <Text style={styles.grapeSearchClearText}>×</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {canUseCustom && (
+            <TouchableOpacity
+              style={styles.addCustomGrape}
+              onPress={() => { onSelect(trimmed); onClose(); }}
+            >
+              <Text style={styles.addCustomGrapeText}>+ Use "{trimmed}" as subregion</Text>
+            </TouchableOpacity>
+          )}
+          <FlatList
+            data={filtered}
+            keyExtractor={i => i}
+            keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => (
               <TouchableOpacity style={styles.pickerItem} onPress={() => { onSelect(item); onClose(); }}>
                 <Text style={styles.pickerItemText}>{item}</Text>
@@ -161,9 +301,9 @@ function GrapePickerModal({
     <Modal visible={visible} transparent animationType="slide">
       <KeyboardAvoidingView
         style={styles.pickerOverlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.pickerSheet}>
+        <View style={[styles.pickerSheet, { maxHeight: '80%' }]}>
           <View style={styles.pickerHeader}>
             <Text style={styles.pickerTitle}>Select Grapes</Text>
             <TouchableOpacity onPress={() => { onConfirm(pending); onClose(); }}>
@@ -264,12 +404,14 @@ export default function BasicInfoScreen() {
   const [importer, setImporter] = useState(tasting.importer ?? '');
   const [vintage, setVintage] = useState(tasting.vintage ?? '');
   const [abv, setAbv] = useState(tasting.abv ?? '');
+  const [price, setPrice] = useState(tasting.price ?? '');
   const [photo, setPhoto] = useState<string | null>(tasting.photo ?? null);
 
   const [expanded, setExpanded] = useState(false);
 
   const [countryPickerOpen, setCountryPickerOpen] = useState(false);
   const [regionPickerOpen, setRegionPickerOpen] = useState(false);
+  const [subregionPickerOpen, setSubregionPickerOpen] = useState(false);
   const [grapePickerOpen, setGrapePickerOpen] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const cameraRef = useRef<CameraView>(null);
@@ -281,10 +423,12 @@ export default function BasicInfoScreen() {
       setName(tasting.name ?? '');
       setCountry(tasting.country ?? '');
       setRegion(tasting.region ?? '');
+      setSubregion(tasting.subregion ?? '');
       setGrapes(tasting.grapes ?? []);
       setImporter(tasting.importer ?? '');
       setVintage(tasting.vintage ?? '');
       setAbv(tasting.abv ?? '');
+      setPrice(tasting.price ?? '');
       setPhoto(tasting.photo ?? null);
       if (tasting.scanApplied) {
         setExpanded(true);
@@ -327,7 +471,7 @@ export default function BasicInfoScreen() {
   };
 
   const handleNext = () => {
-    update({ dateTasted: formatDate(dateTasted), producer, name, country, region, subregion, vineyard, grapes, importer, vintage, abv, photo });
+    update({ dateTasted: formatDate(dateTasted), producer, name, country, region, subregion, vineyard, grapes, importer, vintage, abv, price, photo });
     if (isFull) {
       navigation.navigate('WineStyle');
     } else {
@@ -350,6 +494,7 @@ export default function BasicInfoScreen() {
       importer,
       vintage,
       abv,
+      price,
       photo,
     };
     try {
@@ -487,7 +632,7 @@ export default function BasicInfoScreen() {
             </Row>
 
             <Row label="Region:" noInfo>
-              {WINE_REGIONS[country]?.length > 0 ? (
+              {getRegions(country).length > 0 ? (
                 <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setRegionPickerOpen(true)}>
                   <Text style={region ? styles.dropdownValue : styles.dropdownPlaceholder}>{region || ''}</Text>
                   <Text style={styles.chevron}>∨</Text>
@@ -500,7 +645,14 @@ export default function BasicInfoScreen() {
             {isFull && (
               <>
                 <Row label="Subregion:" noInfo>
-                  <TextInput style={styles.input} value={subregion} onChangeText={setSubregion} placeholder="" />
+                  {getSubregions(country, region).length > 0 ? (
+                    <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setSubregionPickerOpen(true)}>
+                      <Text style={subregion ? styles.dropdownValue : styles.dropdownPlaceholder}>{subregion || ''}</Text>
+                      <Text style={styles.chevron}>∨</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TextInput style={styles.input} value={subregion} onChangeText={setSubregion} placeholder="" />
+                  )}
                 </Row>
                 <Row label="Vineyard:" noInfo>
                   <TextInput style={styles.input} value={vineyard} onChangeText={setVineyard} placeholder="" />
@@ -518,6 +670,16 @@ export default function BasicInfoScreen() {
                 value={abv}
                 onChangeText={setAbv}
                 placeholder="e.g. 13.5%"
+                keyboardType="decimal-pad"
+              />
+            </Row>
+
+            <Row label="Price:" noInfo>
+              <TextInput
+                style={[styles.input, styles.inputShort]}
+                value={price}
+                onChangeText={setPrice}
+                placeholder="e.g. $24.99"
                 keyboardType="decimal-pad"
               />
             </Row>
@@ -541,16 +703,22 @@ export default function BasicInfoScreen() {
       <PickerModal
         visible={countryPickerOpen}
         items={WINE_COUNTRIES}
-        onSelect={(c) => { setCountry(c); setRegion(''); }}
+        onSelect={(c) => { setCountry(c); setRegion(''); setSubregion(''); }}
         onClose={() => setCountryPickerOpen(false)}
         title="Select Country"
       />
-      <PickerModal
+      <RegionPickerModal
         visible={regionPickerOpen}
-        items={WINE_REGIONS[country] ?? []}
-        onSelect={setRegion}
+        country={country}
+        onSelect={(r) => { setRegion(r); setSubregion(''); }}
         onClose={() => setRegionPickerOpen(false)}
-        title="Select Region"
+      />
+      <SubregionPickerModal
+        visible={subregionPickerOpen}
+        country={country}
+        region={region}
+        onSelect={setSubregion}
+        onClose={() => setSubregionPickerOpen(false)}
       />
       <GrapePickerModal
         visible={grapePickerOpen}

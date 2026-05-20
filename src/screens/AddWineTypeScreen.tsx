@@ -27,10 +27,11 @@ export default function AddWineTypeScreen() {
   const [flightStep, setFlightStep] = useState<'choose' | 'name'>('choose');
   const [flightNameInput, setFlightNameInput] = useState('');
 
-  const activeFlightName = tasting.customFlightId ? tasting.customFlightName : null;
+  const hasActiveFlight = Boolean(tasting.customFlightId);
+  const activeFlightName = tasting.customFlightName || (hasActiveFlight ? 'My Flight' : null);
 
-  const handleBack = activeFlightName && tasting.customFlightId
-    ? () => navigation.navigate('CustomFlight', { flightId: tasting.customFlightId!, flightName: activeFlightName })
+  const handleBack = hasActiveFlight
+    ? () => navigation.navigate('CustomFlight', { flightId: tasting.customFlightId!, flightName: activeFlightName! })
     : undefined;
 
   const choose = (type: 'quick' | 'full') => {
@@ -62,7 +63,7 @@ export default function AddWineTypeScreen() {
     <SafeAreaView style={styles.safe}>
       <AppHeader title="Start Tasting" onBack={handleBack} />
       <View style={styles.container}>
-        {activeFlightName && (
+        {hasActiveFlight && (
           <View style={styles.activeFlightBanner}>
             <Text style={styles.activeFlightLabel}>Flight</Text>
             <Text style={styles.activeFlightName}>{activeFlightName}</Text>
@@ -89,8 +90,8 @@ export default function AddWineTypeScreen() {
           <TouchableOpacity
             style={styles.flightBtn}
             onPress={() => {
-              if (activeFlightName && tasting.customFlightId) {
-                navigation.navigate('CustomFlight', { flightId: tasting.customFlightId, flightName: activeFlightName });
+              if (hasActiveFlight) {
+                navigation.navigate('CustomFlight', { flightId: tasting.customFlightId!, flightName: activeFlightName! });
               } else {
                 setFlightStep('choose');
                 setFlightNameInput('');
@@ -100,7 +101,7 @@ export default function AddWineTypeScreen() {
             activeOpacity={0.85}
           >
             <Text style={styles.flightBtnText}>
-              {activeFlightName ? 'Edit Flight' : '+ Start a Wine Flight'}
+              {hasActiveFlight ? 'Edit Flight' : '+ Start a Wine Flight'}
             </Text>
           </TouchableOpacity>
         </View>

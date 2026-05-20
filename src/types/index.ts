@@ -18,6 +18,7 @@ export interface Wine {
   importer: string;
   vintage: string;
   abv: string;
+  price?: string;
   photo: string | null;
 
   // Style

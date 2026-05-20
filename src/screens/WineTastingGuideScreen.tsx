@@ -12,6 +12,18 @@ import AppHeader from '../components/AppHeader';
 import InfoModal from '../components/InfoModal';
 import { Colors } from '../constants/colors';
 
+const STEP_COLORS = ['#9B1C31', '#4A6FA5', '#2E7D32', '#7B4F9E', Colors.primary, Colors.primary];
+
+const DEFINITIONS = [
+  { term: 'Tannin', def: 'Drying/grippy sensation from grape skins and oak; more prominent in reds.' },
+  { term: 'Acidity', def: 'Tartness and freshness; makes your mouth water.' },
+  { term: 'Body', def: 'Weight of the wine on your palate; light to full.' },
+  { term: 'Finish', def: 'How long flavors persist after swallowing.' },
+  { term: 'Dry', def: 'Little to no residual sugar; not sweet.' },
+  { term: 'Terroir', def: 'How the environment (soil, climate, geography) shapes wine character.' },
+  { term: 'Vintage', def: 'The year the grapes were harvested.' },
+];
+
 type Section = { title: string; content: string; funFact?: string };
 
 const GUIDE_SECTIONS: Section[] = [
@@ -79,6 +91,7 @@ export default function WineTastingGuideScreen() {
             activeOpacity={0.8}
           >
             <View style={styles.accordionHeader}>
+              <View style={[styles.accordionAccent, { backgroundColor: STEP_COLORS[i] }]} />
               <Text style={styles.accordionTitle}>{sec.title}</Text>
               <Text style={styles.accordionChevron}>{expanded === i ? '▲' : '▼'}</Text>
             </View>
@@ -96,11 +109,17 @@ export default function WineTastingGuideScreen() {
           </TouchableOpacity>
         ))}
 
-        {/* Quick reference cheat sheet */}
+        {/* Definitions */}
         <View style={styles.cheatSheet}>
-          <Text style={styles.cheatTitle}>Quick Reference</Text>
+          <Text style={styles.cheatTitle}>Definitions</Text>
+          {DEFINITIONS.map(({ term, def }) => (
+            <View key={term} style={styles.defRow}>
+              <Text style={styles.defTerm}>{term}: </Text>
+              <Text style={styles.defText}>{def}</Text>
+            </View>
+          ))}
 
-          <Text style={styles.cheatSubtitle}>Sweetness Levels</Text>
+          <Text style={[styles.cheatSubtitle, { marginTop: 16 }]}>Sweetness Levels</Text>
           <Text style={styles.cheatLine}>Bone Dry → Dry → Off-Dry → Semi-Sweet → Sweet → Very Sweet</Text>
 
           <Text style={styles.cheatSubtitle}>Acidity / Tannin / Body / Alcohol</Text>
@@ -151,12 +170,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     backgroundColor: Colors.surface,
+    gap: 10,
+  },
+  accordionAccent: {
+    width: 4,
+    height: 24,
+    borderRadius: 2,
   },
   accordionTitle: {
     fontSize: 15,
     fontWeight: '800',
     fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
     color: Colors.text,
+    flex: 1,
   },
   accordionChevron: {
     fontSize: 12,
@@ -217,5 +243,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.text,
     lineHeight: 20,
+  },
+  defRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 6,
+  },
+  defTerm: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: Colors.primary,
+  },
+  defText: {
+    fontSize: 13,
+    color: Colors.text,
+    lineHeight: 20,
+    flex: 1,
   },
 });

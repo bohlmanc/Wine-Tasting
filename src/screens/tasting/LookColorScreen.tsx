@@ -82,11 +82,17 @@ export default function LookColorScreen() {
             >
               <View
                 style={[
-                  styles.colorCircle,
-                  { backgroundColor: c.hex },
-                  selected === c.name && styles.colorCircleSelected,
+                  styles.colorCircleWrapper,
+                  selected === c.name && styles.colorCircleWrapperSelected,
                 ]}
-              />
+              >
+                <View
+                  style={[
+                    styles.colorCircle,
+                    { backgroundColor: c.hex },
+                  ]}
+                />
+              </View>
               <Text style={styles.colorName}>{c.name.toUpperCase()}</Text>
               <Text style={styles.colorSubtitle}>{c.subtitle}</Text>
             </TouchableOpacity>
@@ -126,15 +132,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 130,
   },
+  colorCircleWrapper: {
+    borderRadius: 20,
+    padding: 6,
+    marginBottom: 10,
+    borderWidth: 3,
+    borderColor: 'transparent',
+    backgroundColor: Colors.background,
+  },
+  colorCircleWrapperSelected: {
+    borderColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 8,
+  },
   colorCircle: {
     width: 110,
     height: 110,
     borderRadius: 55,
-    marginBottom: 10,
-  },
-  colorCircleSelected: {
-    borderWidth: 4,
-    borderColor: Colors.text,
+    borderWidth: 1,
+    borderColor: '#33333322',
   },
   colorName: {
     fontSize: 16,

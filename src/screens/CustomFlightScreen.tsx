@@ -22,14 +22,6 @@ import { useWineTasting } from '../context/WineTastingContext';
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'CustomFlight'>;
 
-const STYLE_EMOJI: Record<string, string> = {
-  red: '🍷',
-  white: '🥂',
-  rose: '🌸',
-  sparkling: '✨',
-  orange: '🍊',
-  dessert: '🍯',
-};
 
 function WineCard({ wine, index, onPress }: { wine: Wine; index: number; onPress: () => void }) {
   return (
@@ -39,9 +31,8 @@ function WineCard({ wine, index, onPress }: { wine: Wine; index: number; onPress
       </View>
       <View style={styles.wineInfo}>
         <Text style={styles.wineName}>
-          {STYLE_EMOJI[wine.style ?? ''] ?? '🍾'}{wine.vintage ? ` ${wine.vintage}` : ''}{wine.name ? ` ${wine.name}` : ''}
+          {[wine.vintage, wine.producer, wine.name].filter(Boolean).join(' ')}
         </Text>
-        {wine.producer ? <Text style={styles.wineProducer}>{wine.producer}</Text> : null}
         {wine.region || wine.country ? (
           <Text style={styles.wineMeta}>
             {[wine.region, wine.country].filter(Boolean).join(', ')}
