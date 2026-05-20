@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,11 +12,16 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
+import { getAllWineries } from '../services/wineryService';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function WineryCheckInScreen() {
   const navigation = useNavigation<Nav>();
+
+  useEffect(() => {
+    getAllWineries().catch(() => {});
+  }, []);
 
   return (
     <SafeAreaView style={styles.safe}>

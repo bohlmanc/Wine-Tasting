@@ -25,11 +25,19 @@ export default function WinerySearchScreen() {
   const [query, setQuery] = useState('');
   const [allWineries, setAllWineries] = useState<Winery[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
+    setError(false);
     getAllWineries()
       .then(setAllWineries)
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    load();
   }, []);
 
   const filtered = useMemo(() => {
@@ -60,7 +68,18 @@ export default function WinerySearchScreen() {
 
         {loading && <ActivityIndicator color={Colors.primary} style={{ marginTop: 32 }} />}
 
-        {!loading && allWineries.length === 0 && (
+        {!loading && error && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>⚠️</Text>
+            <Text style={styles.emptyText}>Couldn't load wineries</Text>
+            <Text style={styles.emptySubtext}>Check your connection and try again.</Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={load}>
+              <Text style={styles.retryText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {!loading && !error && allWineries.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>🍷</Text>
             <Text style={styles.emptyText}>No wineries available</Text>
@@ -135,6 +154,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textMuted,
     textAlign: 'center',
+  },
+  retryBtn: {
+    marginTop: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+  },
+  retryText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.white,
   },
   resultCard: {
     flexDirection: 'row',
