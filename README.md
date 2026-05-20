@@ -171,8 +171,49 @@ Both platforms are built and submitted locally (not via EAS cloud builds).
 
 ### iOS → App Store
 
-1. Build an archive locally via Xcode (`Product → Archive`).
-2. Distribute via Xcode Organizer → App Store Connect, or `eas submit --platform ios`.
+1. **Set your bundle identifier in `app.json`** — must match exactly what you'll register in App Store Connect:
+
+   ```json
+   "ios": {
+     "bundleIdentifier": "com.yourname.winepocketpal"
+   }
+   ```
+
+   Then rebuild so the native project picks it up:
+
+   ```bash
+   npx expo run:ios
+   ```
+
+2. **Create the app record in App Store Connect** (before you can upload anything):
+   - Go to [appstoreconnect.apple.com](https://appstoreconnect.apple.com) → **My Apps → +**
+   - Enter name, bundle ID (must match above), SKU, and primary language
+   - Fill in at minimum: category, privacy policy URL, and age rating
+
+3. **Enable automatic signing in Xcode:**
+   - Open `ios/WinePocketPal.xcworkspace` in Xcode
+   - Select the `WinePocketPal` target → **Signing & Capabilities**
+   - Check **Automatically manage signing**
+   - Set **Team** to your paid developer account
+   - Xcode will create/download the Distribution certificate and provisioning profile automatically
+
+4. **Build the archive:**
+   - In Xcode, set the scheme destination to **Any iOS Device (arm64)** (not a simulator)
+   - `Product → Archive`
+   - This may take several minutes; the Organizer window opens when it finishes
+
+   > **Xcode 26:** Archive is affected by the same Clang/build-script issues as the dev build. If it fails, check `docs/ios-xcode26-build-issues.md`.
+
+5. **Distribute via Xcode Organizer:**
+   - Select the archive → **Distribute App**
+   - Choose **App Store Connect** → **Upload**
+   - Leave all defaults checked (include bitcode, symbols, etc.)
+   - Xcode validates and uploads; the build appears in App Store Connect under **TestFlight** within ~10–30 min
+
+6. **Submit for review in App Store Connect:**
+   - Under your app → **+ Version** → set version number
+   - Attach the uploaded build, fill in What's New, screenshots (required per device size), and app description
+   - Click **Submit for Review**
 
 ### app.json fields to confirm before a release build
 
