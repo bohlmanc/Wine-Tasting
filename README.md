@@ -109,8 +109,65 @@ Both platforms are built and submitted locally (not via EAS cloud builds).
 
 ### Android → Google Play
 
-1. Build a release APK/AAB locally via Android Studio or Gradle.
-2. Upload to Google Play Console manually or via `eas submit --platform android`.
+1. **Generate a release keystore** (one-time setup — keep the file and passwords somewhere safe):
+
+   ```bash
+   keytool -genkeypair -v -storetype PKCS12 \
+     -keystore android/app/release.keystore \
+     -alias wine-pocket-pal \
+     -keyalg RSA -keysize 2048 -validity 10000
+   ```
+
+   On Windows PowerShell, `keytool` ships with the JDK — run the same command with backslashes or on a single line.
+
+2. **Add signing credentials to `android/gradle.properties`** (never commit this file with real values):
+
+   ```properties
+   MYAPP_UPLOAD_STORE_FILE=release.keystore
+   MYAPP_UPLOAD_KEY_ALIAS=wine-pocket-pal
+   MYAPP_UPLOAD_STORE_PASSWORD=your_store_password
+   MYAPP_UPLOAD_KEY_PASSWORD=your_key_password
+   ```
+
+3. **Wire the keystore into `android/app/build.gradle`** — replace the placeholder `signingConfigs` block:
+
+   ```groovy
+   signingConfigs {
+       release {
+           storeFile file(MYAPP_UPLOAD_STORE_FILE)
+           storePassword MYAPP_UPLOAD_STORE_PASSWORD
+           keyAlias MYAPP_UPLOAD_KEY_ALIAS
+           keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+       }
+   }
+   buildTypes {
+       release {
+           signingConfig signingConfigs.release
+           // ... rest of existing release config
+       }
+   }
+   ```
+
+4. **Build the AAB** (preferred for Google Play) or APK:
+
+   ```bash
+   # from the project root
+   cd android
+
+   # AAB (recommended for Play Store)
+   ./gradlew bundleRelease        # macOS/Linux
+   .\gradlew.bat bundleRelease    # Windows
+
+   # APK (for direct install / testing)
+   ./gradlew assembleRelease
+   .\gradlew.bat assembleRelease
+   ```
+
+   Output locations:
+   - AAB: `android/app/build/outputs/bundle/release/app-release.aab`
+   - APK: `android/app/build/outputs/apk/release/app-release.apk`
+
+5. Upload to Google Play Console manually or via `eas submit --platform android`.
 
 ### iOS → App Store
 
