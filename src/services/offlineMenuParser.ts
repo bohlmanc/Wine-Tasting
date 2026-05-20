@@ -182,12 +182,12 @@ function extractNameFromSegment(segment: string): string {
     // Skip lines that are only a price
     if (PRICE_ONLY.test(line) && extractPrice(line) && line.replace(/[$€£\d.,\s/a-zA-Z]/g, '').length === 0) continue;
 
-    // Strip numbered prefix, price suffix, trailing vintage
     let name = line
-      .replace(/^[\d]+[.)]\s*/, '')           // numbered prefix
-      .replace(/\s*[$€£][\d.,]+[^\w]*$/, '')   // trailing price
-      .replace(/\s*(19|20)\d{2}\s*$/, '')       // trailing vintage
-      .replace(/\s*[|–—]\s*.*$/, '')            // pipe/dash suffix
+      .replace(/^[\d]+[.)]\s*/, '')                    // numbered prefix
+      .replace(/\s*[$€£][\d.,]+[^\w]*$/, '')            // trailing price
+      .replace(/\b(19[5-9]\d|20[0-2]\d)\b/g, '')        // all vintage years, anywhere
+      .replace(/\s*[|–—]\s*.*$/, '')                    // pipe/dash suffix
+      .replace(/\s+/g, ' ')                             // collapse gaps left by year removal
       .trim();
 
     if (name.length >= 2) return name;
@@ -210,8 +210,26 @@ function parseSegment(segment: string): Omit<FlightPendingWine, 'id'> {
   };
 }
 
+// Fields a wine entry can have: name, producer (winery), vintage, country, region, grapes, abv, price
+function countWineFields(wine: Omit<FlightPendingWine, 'id'>): number {
+  return [
+    wine.name?.trim(),
+    wine.producer?.trim(),
+    wine.vintage?.trim(),
+    wine.country?.trim(),
+    wine.region?.trim(),
+    wine.grapes?.length ? 'yes' : '',
+    wine.abv?.trim(),
+    wine.price?.trim(),
+  ].filter(Boolean).length;
+}
+
 function hasUsefulContent(wine: Omit<FlightPendingWine, 'id'>): boolean {
-  return !!(wine.name || wine.vintage || wine.grapes?.length || wine.country);
+  // Vintage and at least one grape are mandatory — menus have plenty of non-wine text
+  // that can accidentally accumulate 3 fields without these two essential markers.
+  const hasVintage = !!wine.vintage?.trim();
+  const hasGrapes = !!(wine.grapes?.length);
+  return hasVintage && hasGrapes && countWineFields(wine) >= 3;
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────

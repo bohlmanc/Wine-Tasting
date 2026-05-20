@@ -27,12 +27,12 @@ import {
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 const COLOR_INFO: Record<string, string> = {
-  red: 'Red wines can range from bright ruby to deep garnet or purple depending on the grape variety and age.',
-  white: 'White wines range from pale straw to deep amber. Darker colors often indicate age or oak influence.',
-  rose: 'Rosé wines vary from pale pink to deep salmon and orange depending on grape variety and production method.',
-  sparkling: 'Sparkling wines range from pale straw to golden and copper, or pink to salmon if made in a rosé style.',
-  orange: 'Orange wines are made from white grapes with extended skin contact, producing amber, orange, copper, or bronze hues.',
-  dessert: 'Dessert wines range from pale gold to deep amber and mahogany depending on style — botrytis, fortified, or late harvest.',
+  red: 'Red wine color tells you a lot. Bright ruby with a purple edge? Likely young, maybe Malbec. A brownish, garnet rim? That wine has some age on it. Tilt your glass over something white to really see the hue.',
+  white: 'White wines range from nearly watery to a rich, deep gold. Pale straw usually means young and unoaked. Deeper gold? It\'s either been aged, seen some oak, or both.',
+  rose: 'The color tells you how long the grape skins were in contact with the juice. Pale, barely-there blush = brief contact, elegant style. Deep salmon = longer contact, bolder flavors.',
+  sparkling: 'Sparkling wines tend to be pale — and that\'s totally normal. A deeper golden color usually means more time on the lees (spent yeast) or some oak influence.',
+  orange: 'Orange wine is white wine made like a red — the skins stay in the juice for an extended time, giving that amber or copper color. The longer the contact, the deeper and more tannic the wine.',
+  dessert: 'Dessert wines are the most color-diverse category — pale gold to deep mahogany. A late-harvest Riesling looks light; a fortified Port is dark and intense. Both are gorgeous.',
 };
 
 export default function LookColorScreen() {

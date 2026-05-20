@@ -69,7 +69,7 @@ export default function WineStyleScreen() {
         <View style={styles.topRow}>
           <InfoModal
             title="Wine Style"
-            body="Select the style of wine you are tasting. This helps guide the tasting notes and appropriate descriptors for each style."
+            body="Your wine's style shapes everything — the colors we look for, the aromas you might find, and the structure you'll taste. Let's start here so the rest of the tasting is tailored to what's in your glass."
           />
         </View>
         <Text style={styles.heading}>What Style of Wine Are{'\n'}You Tasting?</Text>

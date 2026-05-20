@@ -68,7 +68,7 @@ export default function ScanMenuScreen() {
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ImagePicker.MediaType.Images,
         quality: 0.9,
       });
       if (!result.canceled && result.assets[0]) {

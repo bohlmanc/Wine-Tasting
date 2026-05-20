@@ -153,7 +153,7 @@ export default function ThinkScreen() {
         <View style={styles.topRow}>
           <InfoModal
             title="Step 4: Think"
-            body="Reflect on what you tasted. Did you enjoy it? Rate it and add any personal notes."
+            body="This is the most important step — and the one most people skip. Did you like it? Why or why not? Once you know what you love, you can find great wines anywhere. Your honest answer here is more valuable than any score."
           />
         </View>
         <Text style={styles.heading}>Your Thoughts?</Text>

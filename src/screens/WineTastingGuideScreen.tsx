@@ -15,13 +15,13 @@ import { Colors } from '../constants/colors';
 const STEP_COLORS = ['#9B1C31', '#4A6FA5', '#2E7D32', '#7B4F9E', Colors.primary, Colors.primary];
 
 const DEFINITIONS = [
-  { term: 'Tannin', def: 'Drying/grippy sensation from grape skins and oak; more prominent in reds.' },
-  { term: 'Acidity', def: 'Tartness and freshness; makes your mouth water.' },
-  { term: 'Body', def: 'Weight of the wine on your palate; light to full.' },
-  { term: 'Finish', def: 'How long flavors persist after swallowing.' },
-  { term: 'Dry', def: 'Little to no residual sugar; not sweet.' },
-  { term: 'Terroir', def: 'How the environment (soil, climate, geography) shapes wine character.' },
-  { term: 'Vintage', def: 'The year the grapes were harvested.' },
+  { term: 'Tannin', def: 'That dry, cotton-ball sensation in your mouth from grape skins and oak; more prominent in reds.' },
+  { term: 'Acidity', def: 'That mouthwatering, puckery quality — think squeezing a lemon. High-acid wines make you salivate; low-acid wines feel rounder and softer.' },
+  { term: 'Body', def: 'How heavy the wine feels in your mouth. Milk scale: skim = light, 2% = medium, whole milk = full.' },
+  { term: 'Finish', def: 'How long the good flavors linger after you swallow. Ten seconds or more is a long finish — a sign of quality.' },
+  { term: 'Dry', def: 'Little to no residual sugar — not sweet. Though a dry wine can still smell and taste very fruity, which throws people off.' },
+  { term: 'Terroir', def: 'The full picture of where a wine came from — soil, climate, geography — and how that shapes what\'s in your glass.' },
+  { term: 'Vintage', def: 'The year the grapes were picked. Weather that season directly affects the flavor — the same wine can taste different year to year.' },
 ];
 
 type Section = { title: string; content: string; funFact?: string };
@@ -30,44 +30,44 @@ const GUIDE_SECTIONS: Section[] = [
   {
     title: '1. LOOK',
     content:
-      'Tilt your glass against a white background and observe the color. Note the hue (ruby, garnet, gold, straw) and the intensity (pale, medium, deep). Clarity ranges from crystal clear to hazy or opaque.',
+      'Hold your glass at a 45-degree angle over something white and look down through it. Check the hue (ruby, garnet, straw, gold) and the intensity — is it pale and almost watery, or deep and rich? These clues can tell you a lot about the grape and the age of the wine.',
     funFact:
-      'The color of red wine lightens with age as pigments precipitate out. A brick-red rim on a red wine suggests it has been aged.',
+      'As red wine ages, it gets lighter — and white wine gets darker. Both trend toward amber or brown over time. Bright, vivid red = likely young. A pale, brick-toned rim = some age on it.',
   },
   {
     title: '2. SMELL',
     content:
-      'Swirl the glass to release aromas, then take a short sniff. Try to identify primary aromas (fruit, flowers, herbs from the grape), secondary aromas (from fermentation), and tertiary aromas (from aging in oak or bottle).',
+      'Give your glass a good swirl, then get your nose all the way in there. Start simple: does it smell like fruit? From there, narrow it down — cherry or plum? Lemon or pineapple? You\'re building your aroma vocabulary one step at a time, and there are no wrong answers.',
     funFact:
-      'Humans can detect over 10,000 different scents. Our sense of smell accounts for roughly 80% of what we perceive as "taste".',
+      'Most of what we think of as "taste" actually comes from the nose. Try plugging yours and taking a sip — you\'ll be amazed at how little flavor you get. Smell is everything.',
   },
   {
     title: '3. TASTE',
     content:
-      'Take a sip and let it coat your whole palate. Assess sweetness (residual sugar), acidity (freshness, mouthwatering quality), tannin (drying grip, from grape skins and oak), alcohol (warmth), body (weight), and finish (how long flavors linger).',
+      'Take a medium sip and chew on it — just a slow-motion swish around your mouth. You\'re assessing: sweetness, acidity (how much it makes you salivate), body (weight — think skim vs. whole milk), tannin (that drying feeling in reds), and finish (how long flavors linger after you swallow).',
     funFact:
-      'A "long finish" of 60+ seconds is a hallmark of great wines. The finish is often the best indicator of quality.',
+      'If flavors last 10 seconds or more after you swallow, that\'s a long finish — one of the best signs of a quality wine. The longer, the better.',
   },
   {
     title: '4. THINK',
     content:
-      'Synthesize your observations. Is the wine balanced? Are all elements in harmony? Consider the quality level and note whether you would drink it again. Make a guess at the grape variety, region, and vintage.',
+      'This is the most important step — and the one most people skip. Did you like it? Why or why not? Once you know what you love, you can walk into any wine shop or restaurant and ask for exactly that. These notes become your personal guide.',
     funFact:
-      'Professional sommeliers in blind tastings identify grape variety correctly about 50–60% of the time — proving wine identification is genuinely hard!',
+      'Pro sommeliers identify grape varieties correctly only about 50–60% of the time in blind tastings. If you\'re not sure what\'s in your glass, you\'re in very good company — the goal is to start noticing, not to be right.',
   },
   {
     title: 'WINE STYLES',
     content:
-      'Red wines tend to be bold with tannin. Whites are more delicate with higher acidity. Rosé combines both styles. Sparkling wines have carbon dioxide bubbles from secondary fermentation — either in the bottle (Champagne method) or in a tank (Charmat method).',
+      'Reds get their color and tannins from skin contact with the grapes. Whites skip the skin contact — that\'s why they\'re lighter and more acidic. Rosé comes from brief skin contact with red grapes, not a blend. Sparkling wines get their bubbles from a secondary fermentation that traps carbon dioxide in the bottle.',
     funFact:
-      'Rosé wine is not a blend of red and white wine (in most cases). It gets its pink color by leaving red grape skins in brief contact with the juice.',
+      'One of the biggest wine myths: rosé is made by blending red and white. Not true! It gets its gorgeous pink color from a brief period of skin contact. The longer the skins stay in, the deeper the color.',
   },
   {
     title: 'FOOD PAIRING',
     content:
-      'Match weight with weight: light wines with light dishes, full-bodied wines with rich foods. Acidity cuts through fat and cream. Tannins complement protein-rich meats. Sweet wines pair well with desserts that are slightly less sweet than the wine.',
+      'The easiest rule: match the weight. Light wines with light dishes, full-bodied wines with rich foods. High-acid wines are amazing with creamy or fatty dishes — that acidity cuts right through it. And a big tannic red? Pair it with protein, which is why steak and Cabernet is such a classic.',
     funFact:
-      'The classic rule "red with meat, white with fish" is a simplification. A full-bodied white Burgundy pairs beautifully with lobster, and a light Pinot Noir works with salmon.',
+      '"Red with meat, white with fish" is a great starting point, but don\'t let it box you in. A full-bodied Chardonnay is incredible with lobster, and a light Pinot Noir pairs beautifully with salmon. Trust your palate first.',
   },
 ];
 
@@ -80,7 +80,7 @@ export default function WineTastingGuideScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <Text style={styles.heading}>Wine Tasting Guide</Text>
         <Text style={styles.intro}>
-          Use this guide to deepen your wine knowledge. Tap each section to expand.
+          Everything you need to taste wine with confidence. Tap each section to expand.
         </Text>
 
         {GUIDE_SECTIONS.map((sec, i) => (

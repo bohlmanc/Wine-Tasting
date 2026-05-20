@@ -554,15 +554,15 @@ export default function BasicInfoScreen() {
         </TouchableOpacity>
 
         {/* Always-visible core fields */}
-        <Row label="Producer:" info={<InfoModal title="Producer" body="The winery or estate that produced the wine." />}>
+        <Row label="Producer:" info={<InfoModal title="Producer" body="The winery or estate that made the wine — great to track so you can find bottles you loved again." />}>
           <TextInput style={styles.input} value={producer} onChangeText={setProducer} placeholder="" />
         </Row>
 
-        <Row label="Name:" info={<InfoModal title="Wine Name" body="The specific wine name or cuvée label on the bottle." />}>
+        <Row label="Name:" info={<InfoModal title="Wine Name" body="The specific wine name or cuvée — sometimes a vineyard name, sometimes the grape variety. It helps you tell one bottle apart from another by the same producer." />}>
           <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="" />
         </Row>
 
-        <Row label="Grape(s):" info={<InfoModal title="Grape Varieties" body="The grape variety or varieties used to make this wine. You can add multiple grapes." />}>
+        <Row label="Grape(s):" info={<InfoModal title="Grape Varieties" body="The grape or grapes used to make this wine. Some are single-variety, others are blends. Tracking this is one of the best ways to figure out which grapes you love most." />}>
           <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setGrapePickerOpen(true)}>
             <Text style={grapes.length > 0 ? styles.dropdownValue : styles.dropdownPlaceholder}>
               {grapes.length > 0 ? `${grapes.length} selected` : 'Tap to select'}
@@ -580,7 +580,7 @@ export default function BasicInfoScreen() {
           )}
         </Row>
 
-        <Row label="Vintage:" info={<InfoModal title="Vintage" body="The year the grapes were harvested. Found prominently on the label (e.g., 2019)." />}>
+        <Row label="Vintage:" info={<InfoModal title="Vintage" body="The year the grapes were picked. Weather that season affects the flavor, which is why the same wine can taste different year to year. Found prominently on the label." />}>
           <TextInput
             style={[styles.input, styles.inputShort]}
             value={vintage}
@@ -650,7 +650,7 @@ export default function BasicInfoScreen() {
               )}
             </Row>
 
-            <Row label="Country:" info={<InfoModal title="Country" body="The country where the grapes were grown and the wine was produced." />}>
+            <Row label="Country:" info={<InfoModal title="Country" body="Where the grapes were grown. Wine is incredibly tied to place — the same grape can taste completely different depending on the country. One of the most fun things to explore." />}>
               <TouchableOpacity style={styles.dropdownTrigger} onPress={() => { Keyboard.dismiss(); setCountryPickerOpen(true); }}>
                 <Text style={country ? styles.dropdownValue : styles.dropdownPlaceholder}>{country || ''}</Text>
                 <Text style={styles.chevron}>∨</Text>
@@ -683,11 +683,11 @@ export default function BasicInfoScreen() {
               <TextInput style={styles.input} value={vineyard} onChangeText={setVineyard} placeholder="" />
             </Row>
 
-            <Row label="Importer:" info={<InfoModal title="Importer" body="The company that imported this wine into your country. Often found on the back label." />}>
+            <Row label="Importer:" info={<InfoModal title="Importer" body="The company that brought this wine into your country — usually on the back label. Great secret weapon: if you love a wine, look for other bottles from the same importer." />}>
               <TextInput style={styles.input} value={importer} onChangeText={setImporter} placeholder="" />
             </Row>
 
-            <Row label="ABV:" info={<InfoModal title="Alcohol by Volume" body="The alcohol percentage printed on the label (e.g., 13.5%). This is the actual bottled content, not a tasting impression." />}>
+            <Row label="ABV:" info={<InfoModal title="Alcohol by Volume" body="The alcohol percentage printed on the label. A great way to cross-check what you tasted — if it felt high and the label says 15%, trust yourself. Under 12% is light, 12–13.5% is medium, above 14% is high." />}>
               <TextInput
                 style={[styles.input, styles.inputShort]}
                 value={abv}

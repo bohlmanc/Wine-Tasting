@@ -74,7 +74,7 @@ export default function LookDetailsScreen() {
         <View style={styles.topRow}>
           <InfoModal
             title="Step 1: Look"
-            body="Now that you've identified the color, assess its intensity (how deep/pale it is) and clarity (how transparent it is)."
+            body="Intensity is how concentrated the color looks — pale (almost watery) to deep (barely see-through). Clarity is simply how clear it is. Most wines are crystal clear, but a hazy wine is completely fine too."
           />
         </View>
         <Text style={styles.heading}>What Does Your Wine{'\n'}Look Like?</Text>

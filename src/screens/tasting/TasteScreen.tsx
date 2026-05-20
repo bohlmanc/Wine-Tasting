@@ -28,12 +28,12 @@ import {
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 const INFO: Record<string, string> = {
-  Sweetness: 'How sweet does the wine taste? Dry wines have no perceptible sugar; sweet wines have noticeable residual sugar.',
-  Acidity: 'High acidity makes your mouth water and gives wine freshness. Low acidity feels flat or flabby.',
-  Tannin: 'Tannins come from grape skins and oak. They create a drying, gripping sensation — especially in red wines.',
-  Alcohol: 'Wines with higher alcohol feel warmer and fuller. Look for a warming sensation in the back of your throat.',
-  Body: 'Body refers to the weight of the wine in your mouth — think of comparing skim milk (light) to whole milk (full).',
-  Finish: 'How long do the flavors linger after you swallow? A long finish is a sign of quality.',
+  Sweetness: 'How sweet does it taste? Most wines are dry — the yeast ate up all the sugar during fermentation. Even a very fruity wine might have zero sweetness, which surprises a lot of people.',
+  Acidity: 'High acidity makes your mouth water and gives the wine freshness and vibrancy. Low acidity feels rounder and softer. Quick test: after swallowing, would you have drooled if your mouth were open?',
+  Tannin: 'That dry, cotton-ball sensation in red wine from grape skins and oak. Tannin and acidity are opposites: one makes you salivate, the other dries your mouth right out.',
+  Alcohol: 'Feel warmth at the back of your throat? That\'s the alcohol — think of it as a very mild version of a tequila shot. Higher alcohol = more warmth. You can always verify on the label.',
+  Body: 'How heavy does the wine feel in your mouth? I like the milk scale: skim milk = light-bodied, 2% = medium-bodied, whole milk = full-bodied.',
+  Finish: 'How long do the good flavors linger after you swallow? Ten seconds or more is a long finish — one of the clearest signs of a quality wine.',
 };
 
 export default function TasteScreen() {
@@ -83,7 +83,7 @@ export default function TasteScreen() {
         <View style={styles.topRow}>
           <InfoModal
             title="Step 3: Taste"
-            body="Take a sip and assess these characteristics. Slide each bar to match your perception."
+            body="Take a medium sip and chew on it — that's just a slow-motion swish around your mouth. Move the wine to different spots before swallowing. Tap each characteristic to learn what you're looking for."
           />
         </View>
         <Text style={styles.heading}>How Does Your Wine{'\n'}Taste?</Text>

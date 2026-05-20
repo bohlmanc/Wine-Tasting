@@ -56,7 +56,7 @@ export default function SmellMainScreen() {
         <View style={styles.topRow}>
           <InfoModal
             title="Step 2: Smell"
-            body="Swirl your glass and take a sniff. Try to identify the aromas — fruity, earthy, herbal, or other. Tap each category to explore options."
+            body="Give your glass a good swirl, then get your nose all the way in there. Start simple — pick a category and see if anything rings a bell. Whatever you smell is correct. This is all based on your experience, and no one else has had the exact same one."
           />
         </View>
         <Text style={styles.heading}>What Does Your Wine{'\n'}Smell Like?</Text>

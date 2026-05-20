@@ -70,36 +70,74 @@ function SkippedRow({ index, wine }: { index: number; wine: FlightPendingWine })
   );
 }
 
-// ── Manual-flight tasted wine row (list view) ─────────────────────────────────
+// ── Manual-flight wine row (winery-style) ────────────────────────────────────
 
-function WineCard({ wine, index, onPress }: { wine: Wine; index: number; onPress: () => void }) {
+function ManualWineRow({
+  name, producer, vintage, style, region, country, grapes,
+  index, isTasted, tastedWine, editMode, canRemove, onPress, onRemove,
+}: {
+  name: string;
+  producer?: string;
+  vintage?: string;
+  style?: string;
+  region?: string;
+  country?: string;
+  grapes?: string[];
+  index: number;
+  isTasted: boolean;
+  tastedWine?: Wine | null;
+  editMode: boolean;
+  canRemove: boolean;
+  onPress: () => void;
+  onRemove: () => void;
+}) {
   return (
-    <TouchableOpacity style={styles.wineRow} onPress={onPress} activeOpacity={0.75}>
-      <View style={styles.winePosition}>
-        <Text style={styles.winePositionText}>{index + 1}</Text>
-      </View>
-      <View style={styles.wineInfo}>
-        <Text style={styles.wineName}>
-          {[wine.vintage, wine.producer, wine.name].filter(Boolean).join(' ')}
+    <View style={styles.wineRow}>
+      <TouchableOpacity
+        style={[
+          styles.winePosition,
+          isTasted && !editMode && styles.winePositionDone,
+          editMode && canRemove && styles.winePositionRemove,
+        ]}
+        onPress={editMode && canRemove ? onRemove : onPress}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.winePositionText}>
+          {editMode && canRemove ? '×' : isTasted ? '✓' : index + 1}
         </Text>
-        {(wine.region || wine.country) ? (
-          <Text style={styles.wineMeta}>{[wine.region, wine.country].filter(Boolean).join(', ')}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.wineInfo}
+        onPress={editMode ? undefined : onPress}
+        activeOpacity={editMode ? 1 : 0.7}
+        disabled={editMode}
+      >
+        <Text style={styles.wineName}>
+          {STYLE_EMOJI[style ?? ''] ?? '🍾'} {[name, vintage].filter(Boolean).join(' ') || 'Unknown Wine'}
+        </Text>
+        {producer ? <Text style={styles.wineProducer}>{producer}</Text> : null}
+        {(region || country) ? (
+          <Text style={styles.wineMeta}>{[region, country].filter(Boolean).join(', ')}</Text>
         ) : null}
-        {wine.grapes && wine.grapes.length > 0 && (
-          <Text style={styles.wineGrapes}>{wine.grapes.join(', ')}</Text>
+        {grapes && grapes.length > 0 && (
+          <Text style={styles.wineGrapes}>{grapes.join(', ')}</Text>
         )}
-        <View style={styles.completionRow}>
-          {wine.rating !== null && wine.rating !== undefined && (
-            <Text style={styles.completionRating}>★ {wine.rating}/10</Text>
-          )}
-          {wine.liked === true && <Text style={styles.completionEmoji}>👍</Text>}
-          {wine.liked === false && <Text style={styles.completionEmoji}>👎</Text>}
-          {wine.notes ? (
-            <Text style={styles.completionNotes} numberOfLines={1}>"{wine.notes}"</Text>
-          ) : null}
-        </View>
-      </View>
-    </TouchableOpacity>
+        {!editMode && isTasted && tastedWine ? (
+          <View style={styles.completionRow}>
+            {tastedWine.rating != null && (
+              <Text style={styles.completionRating}>★ {tastedWine.rating}/10</Text>
+            )}
+            {tastedWine.liked === true && <Text style={styles.completionEmoji}>👍</Text>}
+            {tastedWine.liked === false && <Text style={styles.completionEmoji}>👎</Text>}
+            {tastedWine.notes ? (
+              <Text style={styles.completionNotes} numberOfLines={1}>"{tastedWine.notes}"</Text>
+            ) : null}
+          </View>
+        ) : !editMode && !isTasted ? (
+          <Text style={styles.tapToTaste}>Tap to taste →</Text>
+        ) : null}
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -115,6 +153,7 @@ export default function CustomFlightScreen() {
   const [originalWines, setOriginalWines] = useState<FlightPendingWine[]>([]);
   const [skippedWineIds, setSkippedWineIds] = useState<string[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -261,6 +300,11 @@ export default function CustomFlightScreen() {
     );
   };
 
+  const handleRemovePendingWine = async (wineId: string) => {
+    await removePendingWine(params.flightId, wineId);
+    setPendingWines(prev => prev.filter(w => w.id !== wineId));
+  };
+
   const handleCancelFlight = () => {
     Alert.alert(
       'Cancel Flight?',
@@ -397,7 +441,13 @@ export default function CustomFlightScreen() {
     );
   }
 
-  // ── Manual flight — original list-based UI ───────────────────────────────────
+  // ── Manual flight — winery-style UI ─────────────────────────────────────────
+
+  const allFlightWines = [
+    ...pendingWines.map((w, i) => ({ kind: 'pending' as const, data: w, index: i })),
+    ...wines.map((w, i) => ({ kind: 'tasted' as const, data: w, index: pendingWines.length + i })),
+  ];
+  const totalCount = allFlightWines.length;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -409,12 +459,12 @@ export default function CustomFlightScreen() {
           <View style={styles.metaRow}>
             <View style={styles.metaBadge}>
               <Text style={styles.metaBadgeText}>
-                {wines.length} wine{wines.length !== 1 ? 's' : ''} tasted
+                {totalCount} wine{totalCount !== 1 ? 's' : ''}
               </Text>
             </View>
-            {pendingWines.length > 0 && (
-              <View style={styles.pendingBadge}>
-                <Text style={styles.pendingBadgeText}>{pendingWines.length} to taste</Text>
+            {wines.length > 0 && totalCount > 0 && (
+              <View style={styles.progressBadge}>
+                <Text style={styles.progressBadgeText}>{wines.length}/{totalCount} tasted</Text>
               </View>
             )}
             {isCompleted && (
@@ -423,56 +473,66 @@ export default function CustomFlightScreen() {
               </View>
             )}
           </View>
+          <TouchableOpacity
+            style={styles.editFlightBtn}
+            onPress={() => setEditMode(e => !e)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.editFlightBtnText}>{editMode ? 'Done' : '✎ Edit Flight'}</Text>
+          </TouchableOpacity>
         </View>
 
-        {!isCompleted && pendingWines.length > 0 && (
+        {totalCount > 0 ? (
           <>
-            <Text style={styles.sectionLabel}>Wines to Taste</Text>
-            {pendingWines.map((w, i) => (
-              <View key={w.id} style={styles.pendingRow}>
-                <View style={styles.pendingPosition}>
-                  <Text style={styles.pendingPositionText}>{i + 1}</Text>
-                </View>
-                <View style={styles.wineInfo}>
-                  <Text style={styles.wineName}>
-                    {[w.vintage, w.producer, w.name].filter(Boolean).join(' ') || 'Unknown Wine'}
-                  </Text>
-                  {(w.region || w.country) ? (
-                    <Text style={styles.wineMeta}>{[w.region, w.country].filter(Boolean).join(', ')}</Text>
-                  ) : null}
-                  {w.grapes && w.grapes.length > 0 && (
-                    <Text style={styles.wineGrapes}>{w.grapes.join(', ')}</Text>
-                  )}
-                  {w.price ? <Text style={styles.pendingPrice}>{w.price}</Text> : null}
-                </View>
-                <TouchableOpacity
-                  style={styles.tasteBtn}
-                  onPress={() => handleStartTastingManual(w)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.tasteBtnText}>Taste</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
+            <Text style={styles.sectionLabel}>The Flight</Text>
+            {allFlightWines.map((item) => {
+              if (item.kind === 'pending') {
+                return (
+                  <ManualWineRow
+                    key={item.data.id}
+                    name={item.data.name ?? ''}
+                    producer={item.data.producer}
+                    vintage={item.data.vintage}
+                    region={item.data.region}
+                    country={item.data.country}
+                    grapes={item.data.grapes}
+                    index={item.index}
+                    isTasted={false}
+                    editMode={editMode}
+                    canRemove={true}
+                    onPress={() => handleStartTastingManual(item.data)}
+                    onRemove={() => handleRemovePendingWine(item.data.id)}
+                  />
+                );
+              }
+              return (
+                <ManualWineRow
+                  key={item.data.id}
+                  name={item.data.name}
+                  producer={item.data.producer}
+                  vintage={item.data.vintage}
+                  style={item.data.style ?? undefined}
+                  region={item.data.region}
+                  country={item.data.country}
+                  grapes={item.data.grapes}
+                  index={item.index}
+                  isTasted={true}
+                  tastedWine={item.data}
+                  editMode={editMode}
+                  canRemove={false}
+                  onPress={() => navigation.navigate('WineDetail', { wineId: item.data.id })}
+                  onRemove={() => {}}
+                />
+              );
+            })}
           </>
-        )}
-
-        {wines.length > 0 ? (
-          <>
-            <Text style={[styles.sectionLabel, pendingWines.length > 0 && { marginTop: 24 }]}>
-              Wines Tasted
-            </Text>
-            {wines.map((w, i) => (
-              <WineCard key={w.id} wine={w} index={i} onPress={() => navigation.navigate('WineDetail', { wineId: w.id })} />
-            ))}
-          </>
-        ) : pendingWines.length === 0 ? (
+        ) : (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>🍾</Text>
             <Text style={styles.emptyTitle}>No wines yet</Text>
-            <Text style={styles.emptyDesc}>Tap "Add Wine" below to start tasting.</Text>
+            <Text style={styles.emptyDesc}>Tap "+ Add Wine" below to start tasting.</Text>
           </View>
-        ) : null}
+        )}
 
         {!isCompleted && (
           <TouchableOpacity style={styles.addWineBtn} onPress={handleAddWine} activeOpacity={0.85}>
@@ -480,13 +540,13 @@ export default function CustomFlightScreen() {
           </TouchableOpacity>
         )}
 
-        {!isCompleted && wines.length > 0 && (
+        {!editMode && !isCompleted && wines.length > 0 && (
           <TouchableOpacity style={styles.completeBtn} onPress={handleCompleteFlight} activeOpacity={0.85}>
             <Text style={styles.completeBtnText}>Complete Flight</Text>
           </TouchableOpacity>
         )}
 
-        {!isCompleted && (
+        {!editMode && !isCompleted && (
           <TouchableOpacity style={styles.cancelLink} onPress={handleCancelFlight}>
             <Text style={styles.cancelLinkText}>Cancel Flight</Text>
           </TouchableOpacity>
@@ -645,10 +705,21 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', gap: 8, marginTop: 6, alignItems: 'center', justifyContent: 'center' },
   metaBadge: { backgroundColor: Colors.primaryLight, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
   metaBadgeText: { fontSize: 13, fontWeight: '700', color: Colors.primaryDark },
+  progressBadge: { backgroundColor: '#e8f5e9', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
+  progressBadgeText: { fontSize: 13, fontWeight: '700', color: '#2e7d32' },
   completedBadge: { backgroundColor: '#2e7d32', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
   completedBadgeText: { fontSize: 13, fontWeight: '700', color: '#fff' },
   pendingBadge: { backgroundColor: Colors.infoBlueLight, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
   pendingBadgeText: { fontSize: 13, fontWeight: '700', color: Colors.infoBlue },
+  editFlightBtn: {
+    marginTop: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+    borderRadius: 20,
+  },
+  editFlightBtnText: { fontSize: 13, fontWeight: '700', color: Colors.primary },
 
   // ── Shared list styles ──
   sectionLabel: {
@@ -667,9 +738,11 @@ const styles = StyleSheet.create({
   },
   winePosition: {
     width: 32, height: 32, borderRadius: 16,
-    backgroundColor: '#2e7d32',
+    backgroundColor: Colors.btnWinery,
     alignItems: 'center', justifyContent: 'center', marginTop: 2,
   },
+  winePositionDone: { backgroundColor: '#2e7d32' },
+  winePositionRemove: { backgroundColor: Colors.disliked },
   winePositionText: { color: Colors.white, fontWeight: '800', fontSize: 15 },
   pendingRow: {
     flexDirection: 'row',
@@ -700,8 +773,10 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
     color: Colors.text,
   },
+  wineProducer: { fontSize: 13, color: Colors.textMuted },
   wineMeta: { fontSize: 12, color: Colors.textMuted },
   wineGrapes: { fontSize: 12, color: Colors.textMuted, fontStyle: 'italic' },
+  tapToTaste: { fontSize: 12, color: Colors.primaryDark, fontWeight: '600', marginTop: 6 },
   completionRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   completionRating: { fontSize: 13, fontWeight: '700', color: '#2e7d32' },
   completionEmoji: { fontSize: 14 },
