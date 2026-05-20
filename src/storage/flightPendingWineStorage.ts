@@ -36,3 +36,29 @@ export async function removePendingWine(flightId: string, wineId: string): Promi
 export async function clearPendingWines(flightId: string): Promise<void> {
   await AsyncStorage.removeItem(key(flightId));
 }
+
+const originalKey = (flightId: string) => `flight-original-wines-${flightId}`;
+const skippedKey = (flightId: string) => `flight-skipped-ids-${flightId}`;
+
+export async function saveOriginalWines(flightId: string, wines: FlightPendingWine[]): Promise<void> {
+  await AsyncStorage.setItem(originalKey(flightId), JSON.stringify(wines));
+}
+
+export async function getOriginalWines(flightId: string): Promise<FlightPendingWine[]> {
+  const raw = await AsyncStorage.getItem(originalKey(flightId));
+  if (!raw) return [];
+  try { return JSON.parse(raw) as FlightPendingWine[]; } catch { return []; }
+}
+
+export async function addSkippedWineId(flightId: string, wineId: string): Promise<void> {
+  const existing = await getSkippedWineIds(flightId);
+  if (!existing.includes(wineId)) {
+    await AsyncStorage.setItem(skippedKey(flightId), JSON.stringify([...existing, wineId]));
+  }
+}
+
+export async function getSkippedWineIds(flightId: string): Promise<string[]> {
+  const raw = await AsyncStorage.getItem(skippedKey(flightId));
+  if (!raw) return [];
+  try { return JSON.parse(raw) as string[]; } catch { return []; }
+}

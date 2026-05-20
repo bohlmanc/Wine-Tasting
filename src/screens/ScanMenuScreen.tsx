@@ -21,8 +21,8 @@ import { CameraView, Camera } from 'expo-camera';
 import { RootStackParamList } from '../navigation/types';
 import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
-import { scanWineMenuOnline } from '../services/menuScanService';
-import { savePendingWines, FlightPendingWine } from '../storage/flightPendingWineStorage';
+import { scanMenuOffline } from '../services/offlineMenuParser';
+import { savePendingWines, saveOriginalWines, FlightPendingWine } from '../storage/flightPendingWineStorage';
 import { useWineTasting } from '../context/WineTastingContext';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -35,7 +35,6 @@ export default function ScanMenuScreen() {
 
   const [phase, setPhase] = useState<Phase>('capture');
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [wines, setWines] = useState<FlightPendingWine[]>([]);
   const [flightNameInput, setFlightNameInput] = useState('');
@@ -71,11 +70,9 @@ export default function ScanMenuScreen() {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 0.9,
-        base64: true,
       });
       if (!result.canceled && result.assets[0]) {
         setImageUri(result.assets[0].uri);
-        setImageBase64(result.assets[0].base64 ?? '');
       }
     } catch (e: any) {
       Alert.alert('Error', e?.message ?? 'Could not open the photo library.');
@@ -85,10 +82,9 @@ export default function ScanMenuScreen() {
   async function handleCapture() {
     if (!cameraRef.current) return;
     try {
-      const photo = await cameraRef.current.takePictureAsync({ base64: true, quality: 0.9 });
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.9 });
       if (!photo) return;
       setImageUri(photo.uri ?? null);
-      setImageBase64(photo.base64 ?? '');
       setCameraOpen(false);
     } catch (e: any) {
       Alert.alert('Camera Error', e?.message ?? 'Could not capture photo.');
@@ -96,10 +92,10 @@ export default function ScanMenuScreen() {
   }
 
   async function handleScan() {
-    if (!imageBase64) return;
+    if (!imageUri) return;
     setScanning(true);
     try {
-      const extracted = await scanWineMenuOnline(imageBase64);
+      const extracted = await scanMenuOffline(imageUri);
       if (extracted.length === 0) {
         Alert.alert(
           'No Wines Found',
@@ -111,14 +107,7 @@ export default function ScanMenuScreen() {
       setWines(extracted);
       setPhase('review');
     } catch (e: any) {
-      const msg: string = e?.message ?? '';
-      if (msg.includes('401')) {
-        Alert.alert('API Key Error', 'Your Anthropic API key is invalid. Check src/config/apiConfig.ts.');
-      } else if (msg.includes('fetch') || msg.includes('network')) {
-        Alert.alert('No Connection', 'Menu scanning requires an internet connection. Check your connection and try again.');
-      } else {
-        Alert.alert('Scan Failed', 'Could not read the menu. Try retaking the photo with better lighting and less glare.');
-      }
+      Alert.alert('Scan Failed', 'Could not read the menu. Try retaking the photo with better lighting and less glare.');
     } finally {
       setScanning(false);
     }
@@ -166,11 +155,12 @@ export default function ScanMenuScreen() {
     setCustomFlight(flightId, name);
     if (wines.length > 0) {
       await savePendingWines(flightId, wines);
+      await saveOriginalWines(flightId, wines);
     }
     navigation.navigate('CustomFlight', { flightId, flightName: name });
   }
 
-  const canScan = !!imageBase64 && !scanning;
+  const canScan = !!imageUri && !scanning;
   const canStartFlight = !!flightNameInput.trim();
 
   return (
@@ -181,11 +171,11 @@ export default function ScanMenuScreen() {
         <>
           <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
             <View style={styles.onlineBadge}>
-              <Text style={styles.onlineBadgeText}>AI (Online) — requires internet</Text>
+              <Text style={styles.onlineBadgeText}>Offline — on-device OCR, no internet needed</Text>
             </View>
 
             <Text style={styles.hint}>
-              Take a photo of the wine menu or tasting sheet. Claude will extract all wines listed and pre-populate your flight.
+              Take a photo of the wine menu or tasting sheet. The app will read the text on-device and pre-populate your flight.
             </Text>
 
             {imageUri ? (
@@ -198,7 +188,7 @@ export default function ScanMenuScreen() {
                   <TouchableOpacity style={styles.retakeBtn} onPress={() => pickImage(false)}>
                     <Text style={styles.retakeBtnText}>Choose Library</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.clearBtn} onPress={() => { setImageUri(null); setImageBase64(null); }}>
+                  <TouchableOpacity style={styles.clearBtn} onPress={() => { setImageUri(null); }}>
                     <Text style={styles.clearBtnText}>Remove</Text>
                   </TouchableOpacity>
                 </View>
