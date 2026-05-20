@@ -16,6 +16,11 @@ import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
 import { loadWines } from '../storage/wineStorage';
 import { isCustomFlightCompleted, markCustomFlightCompleted } from '../storage/customFlightStorage';
+import {
+  getPendingWines,
+  removePendingWine,
+  FlightPendingWine,
+} from '../storage/flightPendingWineStorage';
 import { Wine } from '../types';
 import { useWineTasting } from '../context/WineTastingContext';
 
@@ -61,8 +66,9 @@ function WineCard({ wine, index, onPress }: { wine: Wine; index: number; onPress
 export default function CustomFlightScreen() {
   const navigation = useNavigation<Nav>();
   const { params } = useRoute<Route>();
-  const { setCustomFlight } = useWineTasting();
+  const { setCustomFlight, setTastingType, update, setScanApplied } = useWineTasting();
   const [wines, setWines] = useState<Wine[]>([]);
+  const [pendingWines, setPendingWines] = useState<FlightPendingWine[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
 
   useFocusEffect(
@@ -70,15 +76,48 @@ export default function CustomFlightScreen() {
       Promise.all([
         loadWines(),
         isCustomFlightCompleted(params.flightId),
-      ]).then(([all, completed]) => {
+        getPendingWines(params.flightId),
+      ]).then(([all, completed, pending]) => {
         setWines(all.filter(w => w.flightId === params.flightId));
         setIsCompleted(completed);
+        setPendingWines(pending);
       });
     }, [params.flightId])
   );
 
+  const handleTastePendingWine = (wine: FlightPendingWine, type: 'quick' | 'full') => {
+    setCustomFlight(params.flightId, params.flightName);
+    setTastingType(type);
+    update({
+      name: wine.name ?? '',
+      producer: wine.producer ?? '',
+      vintage: wine.vintage ?? '',
+      country: wine.country ?? '',
+      region: wine.region ?? '',
+      grapes: wine.grapes ?? [],
+      abv: wine.abv ?? '',
+      price: wine.price ?? '',
+    });
+    setScanApplied(true);
+    removePendingWine(params.flightId, wine.id);
+    setPendingWines(prev => prev.filter(w => w.id !== wine.id));
+    navigation.navigate('BasicInfo');
+  };
+
+  const handleStartTasting = (wine: FlightPendingWine) => {
+    Alert.alert(
+      wine.name || wine.producer || 'Start Tasting',
+      'Choose your tasting style:',
+      [
+        { text: 'Quick Sip', onPress: () => handleTastePendingWine(wine, 'quick') },
+        { text: 'Guided Tasting', onPress: () => handleTastePendingWine(wine, 'full') },
+        { text: 'Cancel', style: 'cancel' },
+      ],
+    );
+  };
+
   const handleAddWine = () => {
-    navigation.navigate('AddWineType');
+    navigation.navigate('BasicInfo', { addToFlightId: params.flightId, addToFlightName: params.flightName });
   };
 
   const handleCompleteFlight = () => {
@@ -130,6 +169,13 @@ export default function CustomFlightScreen() {
                 {wines.length} wine{wines.length !== 1 ? 's' : ''} tasted
               </Text>
             </View>
+            {pendingWines.length > 0 && (
+              <View style={styles.pendingBadge}>
+                <Text style={styles.pendingBadgeText}>
+                  {pendingWines.length} to taste
+                </Text>
+              </View>
+            )}
             {isCompleted && (
               <View style={styles.completedBadge}>
                 <Text style={styles.completedBadgeText}>Completed</Text>
@@ -138,14 +184,50 @@ export default function CustomFlightScreen() {
           </View>
         </View>
 
+        {!isCompleted && pendingWines.length > 0 && (
+          <>
+            <Text style={styles.sectionLabel}>Wines to Taste</Text>
+            {pendingWines.map((w, i) => (
+              <View key={w.id} style={styles.pendingRow}>
+                <View style={styles.pendingPosition}>
+                  <Text style={styles.pendingPositionText}>{i + 1}</Text>
+                </View>
+                <View style={styles.wineInfo}>
+                  <Text style={styles.wineName}>
+                    {[w.vintage, w.producer, w.name].filter(Boolean).join(' ') || 'Unknown Wine'}
+                  </Text>
+                  {(w.region || w.country) ? (
+                    <Text style={styles.wineMeta}>
+                      {[w.region, w.country].filter(Boolean).join(', ')}
+                    </Text>
+                  ) : null}
+                  {w.grapes && w.grapes.length > 0 && (
+                    <Text style={styles.wineGrapes}>{w.grapes.join(', ')}</Text>
+                  )}
+                  {w.price ? <Text style={styles.pendingPrice}>{w.price}</Text> : null}
+                </View>
+                <TouchableOpacity
+                  style={styles.tasteBtn}
+                  onPress={() => handleStartTasting(w)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.tasteBtnText}>Taste</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </>
+        )}
+
         {wines.length > 0 ? (
           <>
-            <Text style={styles.sectionLabel}>Wines Tasted</Text>
+            <Text style={[styles.sectionLabel, pendingWines.length > 0 && { marginTop: 24 }]}>
+              Wines Tasted
+            </Text>
             {wines.map((w, i) => (
               <WineCard key={w.id} wine={w} index={i} onPress={() => navigation.navigate('WineDetail', { wineId: w.id })} />
             ))}
           </>
-        ) : (
+        ) : pendingWines.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>🍾</Text>
             <Text style={styles.emptyTitle}>No wines yet</Text>
@@ -153,7 +235,7 @@ export default function CustomFlightScreen() {
               Tap "Add Wine" below to start tasting.
             </Text>
           </View>
-        )}
+        ) : null}
 
         {!isCompleted && (
           <TouchableOpacity style={styles.addWineBtn} onPress={handleAddWine} activeOpacity={0.85}>
@@ -238,6 +320,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#fff',
   },
+  pendingBadge: {
+    backgroundColor: Colors.infoBlueLight,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  pendingBadgeText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.infoBlue,
+  },
   sectionLabel: {
     fontSize: 16,
     fontWeight: '800',
@@ -265,6 +358,47 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontWeight: '800',
     fontSize: 15,
+  },
+  pendingRow: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    alignItems: 'center',
+  },
+  pendingPosition: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.infoBlueLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+    flexShrink: 0,
+  },
+  pendingPositionText: {
+    color: Colors.infoBlue,
+    fontWeight: '800',
+    fontSize: 15,
+  },
+  pendingPrice: {
+    fontSize: 12,
+    color: Colors.primaryDark,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  tasteBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    flexShrink: 0,
+  },
+  tasteBtnText: {
+    color: Colors.white,
+    fontWeight: '700',
+    fontSize: 14,
   },
   wineInfo: { flex: 1, gap: 3 },
   wineName: {

@@ -8,7 +8,7 @@ export const Colors = {
   btnView: '#3D7AB5',
   btnCalendar: '#684551',
   btnGuide: '#1aa398',
-  btnProfile: '#8B1A1A',
+  btnProfile: '#2b4141',
   btnWinery: '#2b4141',
   infoBlue: '#4B7BB5',
   infoBlueLight: '#D8E8F8',

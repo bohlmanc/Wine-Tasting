@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
   },
 
   photoBtn: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.btnGuide,
     borderRadius: 8,
     paddingHorizontal: 24,
     paddingVertical: 11,
@@ -349,10 +349,10 @@ const styles = StyleSheet.create({
   photoBtnSecondary: {
     backgroundColor: Colors.white,
     borderWidth: 1.5,
-    borderColor: Colors.primary,
+    borderColor: Colors.btnGuide,
   },
   photoBtnSecondaryText: {
-    color: Colors.primary,
+    color: Colors.btnGuide,
   },
 
   previewContainer: {
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
   },
   analyzeBtn: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.btnGuide,
     borderRadius: 10,
     paddingVertical: 16,
     alignItems: 'center',

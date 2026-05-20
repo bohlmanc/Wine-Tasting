@@ -32,6 +32,7 @@ import GuidedSessionScreen from '../screens/GuidedSessionScreen';
 import MyFlightsScreen from '../screens/MyFlightsScreen';
 import CompletedFlightDetailScreen from '../screens/CompletedFlightDetailScreen';
 import CustomFlightScreen from '../screens/CustomFlightScreen';
+import ScanMenuScreen from '../screens/ScanMenuScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -70,6 +71,7 @@ export default function AppNavigator() {
         <Stack.Screen name="MyFlights" component={MyFlightsScreen} />
         <Stack.Screen name="CompletedFlightDetail" component={CompletedFlightDetailScreen} />
         <Stack.Screen name="CustomFlight" component={CustomFlightScreen} />
+        <Stack.Screen name="ScanMenu" component={ScanMenuScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -13,6 +13,7 @@ import {
   Image,
   Alert,
   KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
@@ -27,6 +28,7 @@ import { WINE_COUNTRIES, GRAPE_VARIETIES, getRegions, getSubregions } from '../.
 import { useWineTasting } from '../../context/WineTastingContext';
 import { saveWine } from '../../storage/wineStorage';
 import { loadCustomGrapes, saveCustomGrape, deleteCustomGrape } from '../../storage/customGrapesStorage';
+import { getPendingWines, savePendingWines } from '../../storage/flightPendingWineStorage';
 import { Wine } from '../../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -376,12 +378,16 @@ export default function BasicInfoScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'BasicInfo'>>();
   const { tasting, update, reset, setScanApplied, setGuidedSessionId } = useWineTasting();
 
+  const addToFlightId = route.params?.addToFlightId;
+  const addToFlightName = route.params?.addToFlightName;
+  const isAddToFlight = Boolean(addToFlightId);
+
   useEffect(() => {
     const sessionId = route.params?.guidedSessionId ?? null;
     setGuidedSessionId(sessionId);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const isFull = tasting.tastingType === 'full';
-  const isEditing = Boolean(tasting.id);
+  const isEditing = Boolean(tasting.id) && !isAddToFlight;
 
   const parseStoredDate = (s: string | undefined): Date => {
     if (!s) return new Date();
@@ -513,9 +519,29 @@ export default function BasicInfoScreen() {
     }
   };
 
+  const handleAddToFlight = async () => {
+    if (!addToFlightId || !addToFlightName) return;
+    const existing = await getPendingWines(addToFlightId);
+    await savePendingWines(addToFlightId, [
+      ...existing,
+      {
+        id: `pending-${Date.now()}`,
+        name,
+        producer,
+        vintage,
+        country,
+        region,
+        grapes,
+        abv,
+        price,
+      },
+    ]);
+    navigation.navigate('CustomFlight', { flightId: addToFlightId, flightName: addToFlightName });
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
-      <AppHeader title="Basic Information" />
+      <AppHeader title={isAddToFlight ? 'Add Wine to Flight' : 'Basic Information'} />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
 
         <TouchableOpacity style={styles.scanBanner} onPress={() => navigation.navigate('ScanLabel')}>
@@ -625,7 +651,7 @@ export default function BasicInfoScreen() {
             </Row>
 
             <Row label="Country:" info={<InfoModal title="Country" body="The country where the grapes were grown and the wine was produced." />}>
-              <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setCountryPickerOpen(true)}>
+              <TouchableOpacity style={styles.dropdownTrigger} onPress={() => { Keyboard.dismiss(); setCountryPickerOpen(true); }}>
                 <Text style={country ? styles.dropdownValue : styles.dropdownPlaceholder}>{country || ''}</Text>
                 <Text style={styles.chevron}>∨</Text>
               </TouchableOpacity>
@@ -633,7 +659,7 @@ export default function BasicInfoScreen() {
 
             <Row label="Region:" noInfo>
               {getRegions(country).length > 0 ? (
-                <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setRegionPickerOpen(true)}>
+                <TouchableOpacity style={styles.dropdownTrigger} onPress={() => { Keyboard.dismiss(); setRegionPickerOpen(true); }}>
                   <Text style={region ? styles.dropdownValue : styles.dropdownPlaceholder}>{region || ''}</Text>
                   <Text style={styles.chevron}>∨</Text>
                 </TouchableOpacity>
@@ -642,23 +668,20 @@ export default function BasicInfoScreen() {
               )}
             </Row>
 
-            {isFull && (
-              <>
-                <Row label="Subregion:" noInfo>
-                  {getSubregions(country, region).length > 0 ? (
-                    <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setSubregionPickerOpen(true)}>
-                      <Text style={subregion ? styles.dropdownValue : styles.dropdownPlaceholder}>{subregion || ''}</Text>
-                      <Text style={styles.chevron}>∨</Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <TextInput style={styles.input} value={subregion} onChangeText={setSubregion} placeholder="" />
-                  )}
-                </Row>
-                <Row label="Vineyard:" noInfo>
-                  <TextInput style={styles.input} value={vineyard} onChangeText={setVineyard} placeholder="" />
-                </Row>
-              </>
-            )}
+            <Row label="Subregion:" noInfo>
+              {getSubregions(country, region).length > 0 ? (
+                <TouchableOpacity style={styles.dropdownTrigger} onPress={() => { Keyboard.dismiss(); setSubregionPickerOpen(true); }}>
+                  <Text style={subregion ? styles.dropdownValue : styles.dropdownPlaceholder}>{subregion || ''}</Text>
+                  <Text style={styles.chevron}>∨</Text>
+                </TouchableOpacity>
+              ) : (
+                <TextInput style={styles.input} value={subregion} onChangeText={setSubregion} placeholder="" />
+              )}
+            </Row>
+
+            <Row label="Vineyard:" noInfo>
+              <TextInput style={styles.input} value={vineyard} onChangeText={setVineyard} placeholder="" />
+            </Row>
 
             <Row label="Importer:" info={<InfoModal title="Importer" body="The company that imported this wine into your country. Often found on the back label." />}>
               <TextInput style={styles.input} value={importer} onChangeText={setImporter} placeholder="" />
@@ -695,9 +718,15 @@ export default function BasicInfoScreen() {
             <Text style={styles.updateBtnText}>UPDATE</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
-          <Text style={styles.nextBtnText}>NEXT &gt;</Text>
-        </TouchableOpacity>
+        {isAddToFlight ? (
+          <TouchableOpacity style={styles.nextBtn} onPress={handleAddToFlight}>
+            <Text style={styles.nextBtnText}>Add to Flight</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+            <Text style={styles.nextBtnText}>NEXT &gt;</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <PickerModal
@@ -776,7 +805,7 @@ const styles = StyleSheet.create({
   scanBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: 'rgba(26, 163, 152, 0.12)',
     borderRadius: 10,
     padding: 14,
     marginBottom: 20,
@@ -784,9 +813,9 @@ const styles = StyleSheet.create({
   },
   scanBannerIcon: { fontSize: 24 },
   scanBannerText: { flex: 1 },
-  scanBannerTitle: { fontSize: 15, fontWeight: '700', color: Colors.primaryDark },
-  scanBannerSub: { fontSize: 12, color: Colors.primaryDark, opacity: 0.8, marginTop: 1 },
-  scanBannerArrow: { fontSize: 22, color: Colors.primaryDark, fontWeight: '300' },
+  scanBannerTitle: { fontSize: 15, fontWeight: '700', color: Colors.btnGuide },
+  scanBannerSub: { fontSize: 12, color: Colors.btnGuide, opacity: 0.8, marginTop: 1 },
+  scanBannerArrow: { fontSize: 22, color: Colors.btnGuide, fontWeight: '300' },
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -936,7 +965,7 @@ const styles = StyleSheet.create({
   photoPlaceholderIcon: { fontSize: 32 },
   photoPlaceholderBtns: { gap: 10, alignItems: 'center' },
   photoBtn: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.btnGuide,
     borderRadius: 8,
     paddingHorizontal: 24,
     paddingVertical: 10,
@@ -947,9 +976,9 @@ const styles = StyleSheet.create({
   photoBtnSecondary: {
     backgroundColor: Colors.white,
     borderWidth: 1.5,
-    borderColor: Colors.primary,
+    borderColor: Colors.btnGuide,
   },
-  photoBtnSecondaryText: { color: Colors.primary },
+  photoBtnSecondaryText: { color: Colors.btnGuide },
   photoPreviewContainer: {
     borderRadius: 12,
     overflow: 'hidden',
@@ -969,7 +998,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 0.5,
     borderRightColor: Colors.border,
   },
-  photoRetakeBtnText: { color: Colors.primary, fontWeight: '600', fontSize: 14 },
+  photoRetakeBtnText: { color: Colors.btnGuide, fontWeight: '600', fontSize: 14 },
   photoClearBtn: { flex: 1, paddingVertical: 12, alignItems: 'center' },
   photoClearBtnText: { color: Colors.disliked, fontWeight: '600', fontSize: 14 },
   nextBar: {
@@ -1000,7 +1029,7 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
   },
   nextBtn: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.btnGuide,
     borderRadius: 10,
     paddingHorizontal: 32,
     paddingVertical: 16,

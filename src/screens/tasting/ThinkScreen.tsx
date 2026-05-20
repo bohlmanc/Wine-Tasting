@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
   },
   doneBtn: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.btnGuide,
     borderRadius: 10,
     paddingHorizontal: 32,
     paddingVertical: 16,

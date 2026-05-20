@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  SafeAreaView,
   Platform,
   Alert,
 } from 'react-native';
@@ -118,7 +117,7 @@ export default function AppHeader({ title, showBack = true, onBack }: AppHeaderP
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primaryDark,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

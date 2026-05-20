@@ -76,6 +76,18 @@ export default function WinerySearchScreen() {
             <TouchableOpacity style={styles.retryBtn} onPress={load}>
               <Text style={styles.retryText}>Retry</Text>
             </TouchableOpacity>
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+            <TouchableOpacity
+              style={styles.customFlightBtn}
+              onPress={() => navigation.navigate('AddWineType', { startFlight: true })}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.customFlightBtnText}>Create Custom Flight</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -83,6 +95,19 @@ export default function WinerySearchScreen() {
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>🍷</Text>
             <Text style={styles.emptyText}>No wineries available</Text>
+            <Text style={styles.emptySubtext}>No partner wineries have been added yet.</Text>
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+            <TouchableOpacity
+              style={styles.customFlightBtn}
+              onPress={() => navigation.navigate('AddWineType', { startFlight: true })}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.customFlightBtnText}>Create Custom Flight</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -91,6 +116,18 @@ export default function WinerySearchScreen() {
             <Text style={styles.emptyIcon}>🔍</Text>
             <Text style={styles.emptyText}>No results for "{query}"</Text>
             <Text style={styles.emptySubtext}>Try a different name or region.</Text>
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+            <TouchableOpacity
+              style={styles.customFlightBtn}
+              onPress={() => navigation.navigate('AddWineType', { startFlight: true })}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.customFlightBtnText}>Create Custom Flight</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -166,6 +203,35 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: Colors.white,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 20,
+    width: 240,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.border,
+  },
+  dividerText: {
+    fontSize: 13,
+    color: Colors.textMuted,
+  },
+  customFlightBtn: {
+    marginTop: 4,
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderWidth: 2,
+    borderColor: Colors.btnWinery,
+    borderRadius: 8,
+  },
+  customFlightBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.btnWinery,
   },
   resultCard: {
     flexDirection: 'row',

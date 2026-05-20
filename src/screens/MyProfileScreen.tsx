@@ -57,6 +57,14 @@ export default function MyProfileScreen() {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
 
+  const grapeBreakdown = wines.reduce<Record<string, number>>((acc, w) => {
+    (w.grapes ?? []).forEach(g => { acc[g] = (acc[g] ?? 0) + 1; });
+    return acc;
+  }, {});
+  const topGrapes = Object.entries(grapeBreakdown)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
   const styleBreakdown = wines.reduce<Record<string, number>>((acc, w) => {
     if (w.style) acc[w.style] = (acc[w.style] ?? 0) + 1;
     return acc;
@@ -132,6 +140,18 @@ export default function MyProfileScreen() {
             {topCountries.map(([country, count]) => (
               <View key={country} style={styles.countryRow}>
                 <Text style={styles.countryName}>{country}</Text>
+                <Text style={styles.countryCount}>{count} wine{count !== 1 ? 's' : ''}</Text>
+              </View>
+            ))}
+          </Section>
+        )}
+
+        {/* Top grapes */}
+        {topGrapes.length > 0 && (
+          <Section title="Top Grapes">
+            {topGrapes.map(([grape, count]) => (
+              <View key={grape} style={styles.countryRow}>
+                <Text style={styles.countryName}>{grape}</Text>
                 <Text style={styles.countryCount}>{count} wine{count !== 1 ? 's' : ''}</Text>
               </View>
             ))}

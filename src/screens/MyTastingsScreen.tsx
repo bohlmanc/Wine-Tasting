@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
   },
   emptySubtext: { fontSize: 14, color: Colors.textMuted, textAlign: 'center', marginBottom: 28 },
   addBtn: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.btnGuide,
     borderRadius: 10,
     paddingHorizontal: 32,
     paddingVertical: 14,
@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
   },
   count: { fontSize: 15, fontWeight: '700', color: Colors.textMuted },
   addBtnSmall: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.btnGuide,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,

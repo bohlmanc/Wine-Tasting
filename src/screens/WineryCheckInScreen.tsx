@@ -57,8 +57,8 @@ export default function WineryCheckInScreen() {
           onPress={() => navigation.navigate('WinerySearch')}
         >
           <Text style={styles.cardIcon}>🔍</Text>
-          <Text style={styles.cardTitle}>Search Wineries</Text>
-          <Text style={styles.cardDesc}>
+          <Text style={[styles.cardTitle, styles.cardTitleLight]}>Search Wineries</Text>
+          <Text style={[styles.cardDesc, styles.cardDescLight]}>
             Find a partner winery by name, region, or country.
           </Text>
         </TouchableOpacity>
@@ -109,6 +109,13 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  cardTitleLight: {
+    color: Colors.white,
+  },
+  cardDescLight: {
+    color: Colors.white,
+    opacity: 0.85,
   },
   comingSoonBadge: {
     position: 'absolute',

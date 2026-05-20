@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import AppHeader from '../components/AppHeader';
@@ -18,17 +18,31 @@ import { Colors } from '../constants/colors';
 import { useWineTasting } from '../context/WineTastingContext';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Route = RouteProp<RootStackParamList, 'AddWineType'>;
 
 export default function AddWineTypeScreen() {
   const navigation = useNavigation<Nav>();
+  const route = useRoute<Route>();
   const { tasting, setTastingType, setCustomFlight } = useWineTasting();
 
   const [flightModalVisible, setFlightModalVisible] = useState(false);
-  const [flightStep, setFlightStep] = useState<'choose' | 'name'>('choose');
+  const [flightStep, setFlightStep] = useState<'choose' | 'method' | 'name'>('choose');
   const [flightNameInput, setFlightNameInput] = useState('');
 
   const hasActiveFlight = Boolean(tasting.customFlightId);
   const activeFlightName = tasting.customFlightName || (hasActiveFlight ? 'My Flight' : null);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.startFlight && !hasActiveFlight) {
+        setFlightStep('method');
+        setFlightModalVisible(true);
+        navigation.setParams({ startFlight: undefined });
+      }
+    // navigation.setParams identity is stable, safe to omit
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [route.params?.startFlight]),
+  );
 
   const handleBack = hasActiveFlight
     ? () => navigation.navigate('CustomFlight', { flightId: tasting.customFlightId!, flightName: activeFlightName! })
@@ -43,6 +57,11 @@ export default function AddWineTypeScreen() {
     setFlightModalVisible(false);
     setFlightStep('choose');
     setFlightNameInput('');
+  };
+
+  const handleScanMenu = () => {
+    closeModal();
+    navigation.navigate('ScanMenu');
   };
 
   const handleStartCustomFlight = () => {
@@ -72,7 +91,7 @@ export default function AddWineTypeScreen() {
 
         <View style={styles.btnArea}>
           <TouchableOpacity
-            style={[styles.btn, { backgroundColor: Colors.btnView }]}
+            style={[styles.btn, { backgroundColor: Colors.primary }]}
             onPress={() => choose('quick')}
             activeOpacity={0.85}
           >
@@ -129,7 +148,7 @@ export default function AddWineTypeScreen() {
                 <TouchableOpacity
                   style={styles.flightOptionCard}
                   activeOpacity={0.85}
-                  onPress={() => setFlightStep('name')}
+                  onPress={() => setFlightStep('method')}
                 >
                   <View style={styles.flightOptionLeft}>
                     <Text style={styles.flightOptionIcon}>🏠</Text>
@@ -162,9 +181,53 @@ export default function AddWineTypeScreen() {
                   <Text style={styles.cancelBtnText}>Cancel</Text>
                 </TouchableOpacity>
               </>
-            ) : (
+            ) : flightStep === 'method' ? (
               <>
                 <TouchableOpacity onPress={() => setFlightStep('choose')} style={styles.backBtn}>
+                  <Text style={styles.backBtnText}>‹ Back</Text>
+                </TouchableOpacity>
+                <Text style={styles.modalTitle}>Custom Flight</Text>
+                <Text style={styles.modalSubtitle}>
+                  Scan a printed wine menu to pre-populate your flight, or add wines manually as you taste.
+                </Text>
+
+                <TouchableOpacity
+                  style={styles.flightOptionCard}
+                  activeOpacity={0.85}
+                  onPress={handleScanMenu}
+                >
+                  <View style={styles.flightOptionLeft}>
+                    <Text style={styles.flightOptionIcon}>📋</Text>
+                    <View>
+                      <Text style={styles.flightOptionTitle}>Scan a Wine Menu</Text>
+                      <Text style={styles.flightOptionDesc}>AI reads a menu or tasting sheet</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.flightOptionArrow}>›</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.flightOptionCard}
+                  activeOpacity={0.85}
+                  onPress={() => setFlightStep('name')}
+                >
+                  <View style={styles.flightOptionLeft}>
+                    <Text style={styles.flightOptionIcon}>✍️</Text>
+                    <View>
+                      <Text style={styles.flightOptionTitle}>Enter Manually</Text>
+                      <Text style={styles.flightOptionDesc}>Add wines one at a time as you go</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.flightOptionArrow}>›</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.cancelBtn} onPress={closeModal}>
+                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <TouchableOpacity onPress={() => setFlightStep('method')} style={styles.backBtn}>
                   <Text style={styles.backBtnText}>‹ Back</Text>
                 </TouchableOpacity>
                 <Text style={styles.modalTitle}>Name Your Flight</Text>

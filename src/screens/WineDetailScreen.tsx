@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   notesText: { fontSize: 14, color: Colors.text, lineHeight: 20 },
   updateBtn: {
     marginTop: 14,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.btnGuide,
     borderRadius: 8,
     paddingHorizontal: 24,
     paddingVertical: 10,

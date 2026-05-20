@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
   },
   nextBtn: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.btnGuide,
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 16,
