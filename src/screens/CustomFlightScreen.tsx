@@ -27,6 +27,8 @@ const STYLE_EMOJI: Record<string, string> = {
   white: '🥂',
   rose: '🌸',
   sparkling: '✨',
+  orange: '🍊',
+  dessert: '🍯',
 };
 
 function WineCard({ wine, index, onPress }: { wine: Wine; index: number; onPress: () => void }) {
@@ -37,8 +39,7 @@ function WineCard({ wine, index, onPress }: { wine: Wine; index: number; onPress
       </View>
       <View style={styles.wineInfo}>
         <Text style={styles.wineName}>
-          {STYLE_EMOJI[wine.style ?? ''] ?? '🍾'} {wine.name}
-          {wine.vintage ? ` ${wine.vintage}` : ''}
+          {STYLE_EMOJI[wine.style ?? ''] ?? '🍾'}{wine.vintage ? ` ${wine.vintage}` : ''}{wine.name ? ` ${wine.name}` : ''}
         </Text>
         {wine.producer ? <Text style={styles.wineProducer}>{wine.producer}</Text> : null}
         {wine.region || wine.country ? (
@@ -46,6 +47,9 @@ function WineCard({ wine, index, onPress }: { wine: Wine; index: number; onPress
             {[wine.region, wine.country].filter(Boolean).join(', ')}
           </Text>
         ) : null}
+        {wine.grapes && wine.grapes.length > 0 && (
+          <Text style={styles.wineGrapes}>{wine.grapes.join(', ')}</Text>
+        )}
         <View style={styles.completionRow}>
           {wine.rating !== null && wine.rating !== undefined && (
             <Text style={styles.completionRating}>★ {wine.rating}/10</Text>
@@ -280,6 +284,7 @@ const styles = StyleSheet.create({
   },
   wineProducer: { fontSize: 13, color: Colors.textMuted },
   wineMeta: { fontSize: 12, color: Colors.textMuted },
+  wineGrapes: { fontSize: 12, color: Colors.textMuted, fontStyle: 'italic' },
   completionRow: {
     flexDirection: 'row',
     alignItems: 'center',

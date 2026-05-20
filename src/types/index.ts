@@ -1,5 +1,5 @@
 export type TastingType = 'quick' | 'full';
-export type WineStyle = 'red' | 'white' | 'rose' | 'sparkling';
+export type WineStyle = 'red' | 'white' | 'rose' | 'sparkling' | 'orange' | 'dessert';
 
 export interface Wine {
   id: string;

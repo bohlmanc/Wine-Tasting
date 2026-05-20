@@ -42,6 +42,8 @@ const STYLE_EMOJI: Record<string, string> = {
   white: '🥂',
   rose: '🌸',
   sparkling: '✨',
+  orange: '🍊',
+  dessert: '🍯',
 };
 
 const STYLE_OPTIONS: { value: WineStyle; label: string }[] = [
@@ -49,6 +51,8 @@ const STYLE_OPTIONS: { value: WineStyle; label: string }[] = [
   { value: 'white', label: 'White' },
   { value: 'rose', label: 'Rosé' },
   { value: 'sparkling', label: 'Sparkling' },
+  { value: 'orange', label: 'Orange' },
+  { value: 'dessert', label: 'Dessert' },
 ];
 
 function WineRow({

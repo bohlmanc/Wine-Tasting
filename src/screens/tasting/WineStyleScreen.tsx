@@ -24,6 +24,8 @@ const STYLES: { key: WineStyle; label: string; borderColor: string; glassColor: 
   { key: 'white', label: 'WHITE', borderColor: '#C8A000', glassColor: '#E0D060' },
   { key: 'rose', label: 'ROSÉ', borderColor: '#D06080', glassColor: '#F0A0B0' },
   { key: 'sparkling', label: 'SPARKLING', borderColor: '#C8A000', glassColor: '#D8C860' },
+  { key: 'orange', label: 'ORANGE', borderColor: '#C07020', glassColor: '#D4922A' },
+  { key: 'dessert', label: 'DESSERT', borderColor: '#8B5E28', glassColor: '#C09010' },
 ];
 
 function WineGlassIcon({ color, type }: { color: string; type: WineStyle }) {

@@ -20,6 +20,8 @@ import {
   WHITE_WINE_COLORS,
   ROSE_WINE_COLORS,
   SPARKLING_WINE_COLORS,
+  ORANGE_WINE_COLORS,
+  DESSERT_WINE_COLORS,
 } from '../../constants/wineData';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -28,7 +30,9 @@ const COLOR_INFO: Record<string, string> = {
   red: 'Red wines can range from bright ruby to deep garnet or purple depending on the grape variety and age.',
   white: 'White wines range from pale straw to deep amber. Darker colors often indicate age or oak influence.',
   rose: 'Rosé wines vary from pale pink to deep salmon and orange depending on grape variety and production method.',
-  sparkling: 'Sparkling wines can be pale straw-colored to golden, or pink if made rosé-style.',
+  sparkling: 'Sparkling wines range from pale straw to golden and copper, or pink to salmon if made in a rosé style.',
+  orange: 'Orange wines are made from white grapes with extended skin contact, producing amber, orange, copper, or bronze hues.',
+  dessert: 'Dessert wines range from pale gold to deep amber and mahogany depending on style — botrytis, fortified, or late harvest.',
 };
 
 export default function LookColorScreen() {
@@ -41,7 +45,9 @@ export default function LookColorScreen() {
     style === 'red' ? RED_WINE_COLORS
     : style === 'white' ? WHITE_WINE_COLORS
     : style === 'rose' ? ROSE_WINE_COLORS
-    : SPARKLING_WINE_COLORS;
+    : style === 'sparkling' ? SPARKLING_WINE_COLORS
+    : style === 'orange' ? ORANGE_WINE_COLORS
+    : DESSERT_WINE_COLORS;
 
   const handleNext = () => {
     if (!selected) return;

@@ -46,13 +46,14 @@ async function clearAllReports(): Promise<void> {
 
 function formatReportsForEmail(reports: DebugReport[]): string {
   if (reports.length === 0) return 'No reports saved.';
+  const nl = '\r\n';
   const body = reports
     .map(
       (r, i) =>
-        `--- Report ${i + 1} ---\nScreen: ${r.screen}\nTime: ${new Date(r.timestamp).toLocaleString()}\nNote: ${r.note}`
+        `--- Report ${i + 1} ---${nl}Screen: ${r.screen}${nl}Time: ${new Date(r.timestamp).toLocaleString()}${nl}Note: ${r.note}`
     )
-    .join('\n\n');
-  return `=== Wine Pocket Pal Bug Reports ===\nExported: ${new Date().toLocaleString()}\n\n${body}`;
+    .join(`${nl}${nl}`);
+  return `=== Wine Pocket Pal Bug Reports ===${nl}Exported: ${new Date().toLocaleString()}${nl}${nl}${body}`;
 }
 
 async function openMailWithReports(reports: DebugReport[]): Promise<void> {

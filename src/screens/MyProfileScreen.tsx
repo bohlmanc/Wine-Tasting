@@ -118,7 +118,9 @@ export default function MyProfileScreen() {
                   style === 'red' ? '#C1121F'
                   : style === 'white' ? '#C8A000'
                   : style === 'rose' ? '#D06080'
-                  : '#4A8585';
+                  : style === 'sparkling' ? '#4A8585'
+                  : style === 'orange' ? '#C07020'
+                  : '#8B5E28';
                 return (
                   <View key={style} style={[styles.breakdownBadge, { borderColor: color }]}>
                     <Text style={[styles.breakdownBadgeText, { color }]}>

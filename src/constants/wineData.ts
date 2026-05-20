@@ -486,8 +486,25 @@ export const ROSE_WINE_COLORS = [
 
 export const SPARKLING_WINE_COLORS = [
   { name: 'Straw', subtitle: 'Very Pale', hex: '#F0DFA0' },
-  { name: 'Gold', subtitle: 'Golden Yellow', hex: '#C09010' },
-  { name: 'Pink', subtitle: 'Rosé Sparkling', hex: '#F4A0A8' },
+  { name: 'Yellow', subtitle: 'Light Yellow', hex: '#E8D060' },
+  { name: 'Gold', subtitle: 'Golden', hex: '#C09010' },
+  { name: 'Copper', subtitle: 'Warm Copper', hex: '#B8702A' },
+  { name: 'Pink', subtitle: 'Pale Rosé', hex: '#F4A0A8' },
+  { name: 'Salmon', subtitle: 'Deep Rosé', hex: '#E07060' },
+];
+
+export const ORANGE_WINE_COLORS = [
+  { name: 'Amber', subtitle: 'Pale Amber', hex: '#D4922A' },
+  { name: 'Orange', subtitle: 'Warm Orange', hex: '#C07020' },
+  { name: 'Copper', subtitle: 'Deep Copper', hex: '#A05018' },
+  { name: 'Bronze', subtitle: 'Rich Bronze', hex: '#8B5E28' },
+];
+
+export const DESSERT_WINE_COLORS = [
+  { name: 'Straw', subtitle: 'Pale Gold', hex: '#F0DFA0' },
+  { name: 'Gold', subtitle: 'Deep Gold', hex: '#C09010' },
+  { name: 'Amber', subtitle: 'Warm Amber', hex: '#C07820' },
+  { name: 'Mahogany', subtitle: 'Deep Brown', hex: '#7A3A10' },
 ];
 
 export const SWEETNESS_STEPS = ['Bone Dry', 'Dry', 'Off-Dry', 'Semi Sweet', 'Sweet', 'Very Sweet'];

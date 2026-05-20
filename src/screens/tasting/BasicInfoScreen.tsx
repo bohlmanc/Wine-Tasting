@@ -12,6 +12,7 @@ import {
   Platform,
   Image,
   Alert,
+  KeyboardAvoidingView,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
@@ -158,7 +159,10 @@ function GrapePickerModal({
 
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.pickerOverlay}>
+      <KeyboardAvoidingView
+        style={styles.pickerOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <View style={styles.pickerSheet}>
           <View style={styles.pickerHeader}>
             <Text style={styles.pickerTitle}>Select Grapes</Text>
@@ -222,7 +226,7 @@ function GrapePickerModal({
             }}
           />
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

@@ -29,6 +29,10 @@ export default function AddWineTypeScreen() {
 
   const activeFlightName = tasting.customFlightId ? tasting.customFlightName : null;
 
+  const handleBack = activeFlightName && tasting.customFlightId
+    ? () => navigation.navigate('CustomFlight', { flightId: tasting.customFlightId!, flightName: activeFlightName })
+    : undefined;
+
   const choose = (type: 'quick' | 'full') => {
     setTastingType(type);
     navigation.navigate('BasicInfo');
@@ -56,7 +60,7 @@ export default function AddWineTypeScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <AppHeader title="Start Tasting" />
+      <AppHeader title="Start Tasting" onBack={handleBack} />
       <View style={styles.container}>
         {activeFlightName && (
           <View style={styles.activeFlightBanner}>
@@ -85,9 +89,13 @@ export default function AddWineTypeScreen() {
           <TouchableOpacity
             style={styles.flightBtn}
             onPress={() => {
-              setFlightStep('choose');
-              setFlightNameInput(tasting.customFlightName ?? '');
-              setFlightModalVisible(true);
+              if (activeFlightName && tasting.customFlightId) {
+                navigation.navigate('CustomFlight', { flightId: tasting.customFlightId, flightName: activeFlightName });
+              } else {
+                setFlightStep('choose');
+                setFlightNameInput('');
+                setFlightModalVisible(true);
+              }
             }}
             activeOpacity={0.85}
           >
