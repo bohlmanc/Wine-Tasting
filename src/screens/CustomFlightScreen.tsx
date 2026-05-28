@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Platform,
   Alert,
+  Modal,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -44,7 +45,7 @@ const STYLE_EMOJI: Record<string, string> = {
 
 function ManualWineRow({
   name, producer, vintage, style, region, country, grapes,
-  index, isTasted, isSkipped, tastedWine, editMode, canRemove, onPress, onRemove,
+  index, isTasted, isSkipped, tastedWine, canRemove, onPress, onRemove,
 }: {
   name: string;
   producer?: string;
@@ -57,7 +58,6 @@ function ManualWineRow({
   isTasted: boolean;
   isSkipped?: boolean;
   tastedWine?: Wine | null;
-  editMode: boolean;
   canRemove: boolean;
   onPress: () => void;
   onRemove: () => void;
@@ -67,22 +67,22 @@ function ManualWineRow({
       <TouchableOpacity
         style={[
           styles.winePosition,
-          isTasted && !editMode && styles.winePositionDone,
+          isTasted && styles.winePositionDone,
           isSkipped && styles.winePositionSkipped,
-          editMode && canRemove && styles.winePositionRemove,
+          canRemove && styles.winePositionRemove,
         ]}
-        onPress={editMode && canRemove ? onRemove : (!isSkipped ? onPress : undefined)}
+        onPress={canRemove ? onRemove : (!isSkipped ? onPress : undefined)}
         activeOpacity={0.7}
       >
         <Text style={styles.winePositionText}>
-          {editMode && canRemove ? '×' : isTasted ? '✓' : isSkipped ? '–' : index + 1}
+          {canRemove ? '×' : isTasted ? '✓' : isSkipped ? '–' : index + 1}
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.wineInfo, isSkipped && styles.wineInfoSkipped]}
-        onPress={editMode || isSkipped ? undefined : onPress}
-        activeOpacity={editMode || isSkipped ? 1 : 0.7}
-        disabled={editMode || isSkipped}
+        onPress={isSkipped ? undefined : onPress}
+        activeOpacity={isSkipped ? 1 : 0.7}
+        disabled={isSkipped}
       >
         <Text style={styles.wineName}>
           {STYLE_EMOJI[style ?? ''] ?? '🍾'} {[name, vintage].filter(Boolean).join(' ') || 'Unknown Wine'}
@@ -94,7 +94,7 @@ function ManualWineRow({
         {grapes && grapes.length > 0 && (
           <Text style={styles.wineGrapes}>{grapes.join(', ')}</Text>
         )}
-        {!editMode && isTasted && tastedWine ? (
+        {isTasted && tastedWine ? (
           <View style={styles.completionRow}>
             {tastedWine.rating != null && (
               <Text style={styles.completionRating}>★ {tastedWine.rating}/10</Text>
@@ -105,9 +105,9 @@ function ManualWineRow({
               <Text style={styles.completionNotes} numberOfLines={1}>"{tastedWine.notes}"</Text>
             ) : null}
           </View>
-        ) : !editMode && isSkipped ? (
+        ) : isSkipped ? (
           <Text style={styles.skippedText}>Skipped</Text>
-        ) : !editMode && !isTasted && !isSkipped ? (
+        ) : !isTasted && !isSkipped ? (
           <Text style={styles.tapToTaste}>Tap to taste →</Text>
         ) : null}
       </TouchableOpacity>
@@ -120,14 +120,15 @@ function ManualWineRow({
 export default function CustomFlightScreen() {
   const navigation = useNavigation<Nav>();
   const { params } = useRoute<Route>();
-  const { setCustomFlight, setTastingType, update, setScanApplied } = useWineTasting();
+  const { setCustomFlight, setTastingType, update, setScanApplied, reset } = useWineTasting();
 
   const [wines, setWines] = useState<Wine[]>([]);
   const [pendingWines, setPendingWines] = useState<FlightPendingWine[]>([]);
   const [originalWines, setOriginalWines] = useState<FlightPendingWine[]>([]);
   const [skippedWineIds, setSkippedWineIds] = useState<string[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  // Tasting-type selection modal (replaces Alert)
+  const [tastingModalWine, setTastingModalWine] = useState<FlightPendingWine | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -181,7 +182,10 @@ export default function CustomFlightScreen() {
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
+  // Bug 8: Don't remove the pending wine from storage yet — keep it until the
+  // tasting is actually saved in ThinkScreen. This way going back doesn't erase it.
   const handleTastePendingWine = (wine: FlightPendingWine, type: 'quick' | 'full') => {
+    setTastingModalWine(null);
     setTastingType(type);
     setCustomFlight(params.flightId, params.flightName);
     update({
@@ -196,8 +200,6 @@ export default function CustomFlightScreen() {
       flightWineId: wine.id,
     });
     setScanApplied(true);
-    removePendingWine(params.flightId, wine.id);
-    setPendingWines(prev => prev.filter(w => w.id !== wine.id));
     navigation.navigate('BasicInfo');
   };
 
@@ -208,23 +210,14 @@ export default function CustomFlightScreen() {
     setPendingWines(prev => prev.filter(w => w.id !== wine.id));
   };
 
+  // Bug 9: Open the styled tasting-type modal instead of a bare Alert
   const handleStartTasting = (wine: FlightPendingWine) => {
-    const buttons: any[] = [
-      { text: 'Quick Sip', onPress: () => handleTastePendingWine(wine, 'quick') },
-      { text: 'Guided Tasting', onPress: () => handleTastePendingWine(wine, 'full') },
-    ];
-    if (isSequentialFlight) {
-      buttons.push({ text: 'Skip Wine', onPress: () => handleSkipWine(wine) });
-    }
-    buttons.push({ text: 'Cancel', style: 'cancel' });
-    Alert.alert(
-      wine.name || wine.producer || 'Start Tasting',
-      'Choose your tasting style:',
-      buttons,
-    );
+    setTastingModalWine(wine);
   };
 
+  // Bug 7: Reset the context so the form starts fresh when adding a new wine
   const handleAddWine = () => {
+    reset();
     navigation.navigate('BasicInfo', { addToFlightId: params.flightId, addToFlightName: params.flightName });
   };
 
@@ -320,15 +313,6 @@ export default function CustomFlightScreen() {
               </View>
             )}
           </View>
-          {!isSequentialFlight && (
-            <TouchableOpacity
-              style={styles.editFlightBtn}
-              onPress={() => setEditMode(e => !e)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.editFlightBtnText}>{editMode ? 'Done' : '✎ Edit Flight'}</Text>
-            </TouchableOpacity>
-          )}
         </View>
 
         {isSequentialFlight && originalWines.length > 0 && (
@@ -358,7 +342,6 @@ export default function CustomFlightScreen() {
                     grapes={item.wine.grapes}
                     index={item.index}
                     isTasted={false}
-                    editMode={editMode}
                     canRemove={!isSequentialFlight}
                     onPress={() => handleStartTasting(item.wine)}
                     onRemove={() => handleRemovePendingWine(item.wine.id)}
@@ -378,7 +361,6 @@ export default function CustomFlightScreen() {
                     index={item.index}
                     isTasted={false}
                     isSkipped={true}
-                    editMode={false}
                     canRemove={false}
                     onPress={() => {}}
                     onRemove={() => {}}
@@ -398,7 +380,6 @@ export default function CustomFlightScreen() {
                   index={item.index}
                   isTasted={true}
                   tastedWine={item.wine}
-                  editMode={editMode}
                   canRemove={false}
                   onPress={() => navigation.navigate('WineDetail', { wineId: item.wine.id })}
                   onRemove={() => {}}
@@ -420,13 +401,13 @@ export default function CustomFlightScreen() {
           </TouchableOpacity>
         )}
 
-        {!editMode && !isCompleted && allDone && (
+        {!isCompleted && allDone && (
           <TouchableOpacity style={styles.completeBtn} onPress={handleCompleteFlight} activeOpacity={0.85}>
             <Text style={styles.completeBtnText}>Complete Flight</Text>
           </TouchableOpacity>
         )}
 
-        {!editMode && !isCompleted && (
+        {!isCompleted && (
           <TouchableOpacity style={styles.cancelLink} onPress={handleCancelFlight}>
             <Text style={styles.cancelLinkText}>Cancel Flight</Text>
           </TouchableOpacity>
@@ -434,6 +415,61 @@ export default function CustomFlightScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Bug 9: Styled tasting-type modal replaces the bare Alert */}
+      <Modal
+        visible={tastingModalWine !== null}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setTastingModalWine(null)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setTastingModalWine(null)}
+        >
+          <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>
+              {tastingModalWine?.name || tastingModalWine?.producer || 'Start Tasting'}
+            </Text>
+            <Text style={styles.modalSubtitle}>Choose your tasting style:</Text>
+
+            <TouchableOpacity
+              style={[styles.modalBtn, { backgroundColor: Colors.primary }]}
+              activeOpacity={0.85}
+              onPress={() => tastingModalWine && handleTastePendingWine(tastingModalWine, 'quick')}
+            >
+              <Text style={styles.modalBtnText}>Quick Sip</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.modalBtn, { backgroundColor: Colors.btnGuide }]}
+              activeOpacity={0.85}
+              onPress={() => tastingModalWine && handleTastePendingWine(tastingModalWine, 'full')}
+            >
+              <Text style={styles.modalBtnText}>Guided Tasting</Text>
+            </TouchableOpacity>
+
+            {isSequentialFlight && tastingModalWine && (
+              <TouchableOpacity
+                style={styles.modalSkipBtn}
+                activeOpacity={0.85}
+                onPress={() => { handleSkipWine(tastingModalWine); setTastingModalWine(null); }}
+              >
+                <Text style={styles.modalSkipBtnText}>Skip Wine</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.modalCancelLink}
+              onPress={() => setTastingModalWine(null)}
+            >
+              <Text style={styles.modalCancelLinkText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -490,16 +526,6 @@ const styles = StyleSheet.create({
   progressBadgeText: { fontSize: 13, fontWeight: '700', color: '#2e7d32' },
   completedBadge: { backgroundColor: '#2e7d32', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
   completedBadgeText: { fontSize: 13, fontWeight: '700', color: '#fff' },
-  editFlightBtn: {
-    marginTop: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 18,
-    borderWidth: 1.5,
-    borderColor: Colors.primary,
-    borderRadius: 20,
-  },
-  editFlightBtnText: { fontSize: 13, fontWeight: '700', color: Colors.primary },
-
   // ── Wine list ──
   sectionLabel: {
     fontSize: 16,
@@ -575,4 +601,72 @@ const styles = StyleSheet.create({
   },
   cancelLink: { alignItems: 'center', paddingVertical: 16, marginTop: 8 },
   cancelLinkText: { fontSize: 14, color: Colors.disliked, textDecorationLine: 'underline' },
+
+  // ── Tasting-type modal (Bug 9) ──
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 28,
+    gap: 12,
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: Colors.border,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 4,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  modalBtn: {
+    borderRadius: 12,
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  modalBtnText: {
+    color: Colors.white,
+    fontSize: 20,
+    fontWeight: '800',
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+  },
+  modalSkipBtn: {
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  modalSkipBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.textMuted,
+  },
+  modalCancelLink: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  modalCancelLinkText: {
+    fontSize: 14,
+    color: Colors.textMuted,
+    textDecorationLine: 'underline',
+  },
 });

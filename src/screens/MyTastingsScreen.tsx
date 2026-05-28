@@ -12,6 +12,7 @@ import {
   TextInput,
   Modal,
   Pressable,
+  Keyboard,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -98,7 +99,7 @@ export default function MyWinesScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <AppHeader title="My Tastings" />
-      <View style={styles.container}>
+      <Pressable style={styles.container} onPress={Keyboard.dismiss}>
         {wines.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>🍷</Text>
@@ -156,6 +157,8 @@ export default function MyWinesScreen() {
               data={filteredWines}
               keyExtractor={w => w.id}
               contentContainerStyle={styles.list}
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
               ListEmptyComponent={
                 <View style={styles.noResults}>
                   <Text style={styles.noResultsText}>No wines match your filters.</Text>
@@ -185,7 +188,7 @@ export default function MyWinesScreen() {
             />
           </>
         )}
-      </View>
+      </Pressable>
 
       <PickerModal
         visible={showGrapePicker}

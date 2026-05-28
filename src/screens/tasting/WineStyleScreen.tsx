@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
 import Svg, { Path, Ellipse, Circle } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
@@ -16,7 +17,8 @@ import AppHeader from '../../components/AppHeader';
 import InfoModal from '../../components/InfoModal';
 import { Colors } from '../../constants/colors';
 import { useWineTasting } from '../../context/WineTastingContext';
-import { WineStyle } from '../../types';
+import { saveWine } from '../../storage/wineStorage';
+import { Wine, WineStyle } from '../../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -53,8 +55,48 @@ function WineGlassIcon({ color, type }: { color: string; type: WineStyle }) {
 
 export default function WineStyleScreen() {
   const navigation = useNavigation<Nav>();
-  const { tasting, update } = useWineTasting();
+  const { tasting, update, reset } = useWineTasting();
   const [selected, setSelected] = useState<WineStyle | null>(tasting.style ?? null);
+
+  // Intercept back navigation and hamburger-home presses to offer save/discard
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      // Only intercept GO_BACK (back button / swipe) — let forward navigations pass
+      if (e.data.action.type !== 'GO_BACK') return;
+      e.preventDefault();
+      Alert.alert(
+        'Exit Tasting?',
+        'Would you like to save your tasting so far or discard it?',
+        [
+          {
+            text: 'Save Tasting',
+            onPress: async () => {
+              try {
+                const wine: Wine = {
+                  ...(tasting as Wine),
+                  id: tasting.id ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                  createdAt: tasting.createdAt ?? new Date().toISOString(),
+                };
+                await saveWine(wine);
+              } catch {}
+              reset();
+              navigation.dispatch(e.data.action);
+            },
+          },
+          {
+            text: 'Discard',
+            style: 'destructive',
+            onPress: () => {
+              reset();
+              navigation.dispatch(e.data.action);
+            },
+          },
+          { text: 'Keep Going', style: 'cancel' },
+        ],
+      );
+    });
+    return unsubscribe;
+  }, [navigation, tasting, reset]);
 
   const handleNext = () => {
     if (!selected) return;

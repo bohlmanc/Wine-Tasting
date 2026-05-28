@@ -151,7 +151,20 @@ export function extractCountry(text: string): string {
 export function extractRegion(text: string, country: string): string {
   const regions = WINE_REGIONS[country];
   if (!regions) return '';
-  const matches = regions.filter(r => wordBoundaryMatch(text, r));
+  // Only match a region when it appears on a relatively isolated line —
+  // no more than 3 words beyond the region itself. This prevents region names
+  // embedded in long sentences (descriptions, producer addresses, etc.) from
+  // triggering a false match.
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const matches = regions.filter(r => {
+    if (r.length <= 2) return false;
+    return lines.some(line => {
+      if (!wordBoundaryMatch(line, r)) return false;
+      const regionWordCount = r.split(/\s+/).length;
+      const lineWordCount = line.split(/\s+/).filter(Boolean).length;
+      return lineWordCount <= regionWordCount + 3;
+    });
+  });
   if (!matches.length) return '';
   // Prefer most specific: rank by word count desc, then length desc
   const best = matches.reduce((a, r) => {

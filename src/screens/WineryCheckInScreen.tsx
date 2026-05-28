@@ -31,24 +31,14 @@ export default function WineryCheckInScreen() {
           Check in at a partner winery to start a guided tasting flight.
         </Text>
 
-        {/* QR scan — Phase 4 */}
-        <TouchableOpacity
-          style={[styles.card, styles.cardPrimary]}
-          activeOpacity={0.85}
-          onPress={() => {
-            // TODO (Phase 4): launch QR/barcode scanner
-            // Decode wpp://winery/{slug}, call getWineryBySlug, navigate to WineryDetail
-          }}
-        >
+        {/* QR scan — use native camera */}
+        <View style={[styles.card, styles.cardPrimary]}>
           <Text style={styles.cardIcon}>📷</Text>
           <Text style={styles.cardTitle}>Scan QR Code</Text>
           <Text style={styles.cardDesc}>
-            Point your camera at the winery's QR code to check in instantly.
+            Open your phone's camera app and point it at the winery's QR code — it'll open right here.
           </Text>
-          <View style={styles.comingSoonBadge}>
-            <Text style={styles.comingSoonText}>Coming Soon</Text>
-          </View>
-        </TouchableOpacity>
+        </View>
 
         {/* Search */}
         <TouchableOpacity
@@ -116,19 +106,5 @@ const styles = StyleSheet.create({
   cardDescLight: {
     color: Colors.white,
     opacity: 0.85,
-  },
-  comingSoonBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: Colors.primaryLight,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  comingSoonText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.primaryDark,
   },
 });

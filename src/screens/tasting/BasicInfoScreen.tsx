@@ -409,7 +409,7 @@ export default function BasicInfoScreen() {
   const [grapes, setGrapes] = useState<string[]>(tasting.grapes ?? []);
   const [importer, setImporter] = useState(tasting.importer ?? '');
   const [vintage, setVintage] = useState(tasting.vintage ?? '');
-  const [abv, setAbv] = useState(tasting.abv ?? '');
+  const [abv, setAbv] = useState((tasting.abv ?? '').replace(/%/g, ''));
   const [price, setPrice] = useState(tasting.price ?? '');
   const [photo, setPhoto] = useState<string | null>(tasting.photo ?? null);
 
@@ -433,7 +433,7 @@ export default function BasicInfoScreen() {
       setGrapes(tasting.grapes ?? []);
       setImporter(tasting.importer ?? '');
       setVintage(tasting.vintage ?? '');
-      setAbv(tasting.abv ?? '');
+      setAbv((tasting.abv ?? '').replace(/%/g, ''));
       setPrice(tasting.price ?? '');
       setPhoto(tasting.photo ?? null);
       if (tasting.scanApplied) {
@@ -542,6 +542,11 @@ export default function BasicInfoScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <AppHeader title={isAddToFlight ? 'Add Wine to Flight' : 'Basic Information'} />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+      >
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
 
         <TouchableOpacity style={styles.scanBanner} onPress={() => navigation.navigate('ScanLabel')}>
@@ -691,8 +696,8 @@ export default function BasicInfoScreen() {
               <TextInput
                 style={[styles.input, styles.inputShort]}
                 value={abv}
-                onChangeText={setAbv}
-                placeholder="e.g. 13.5%"
+                onChangeText={(v) => setAbv(v.replace(/[^0-9.]/g, ''))}
+                placeholder="e.g. 13.5"
                 keyboardType="decimal-pad"
               />
             </Row>
@@ -728,6 +733,7 @@ export default function BasicInfoScreen() {
           </TouchableOpacity>
         )}
       </View>
+      </KeyboardAvoidingView>
 
       <PickerModal
         visible={countryPickerOpen}

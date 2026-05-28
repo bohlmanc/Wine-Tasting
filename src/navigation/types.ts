@@ -22,6 +22,7 @@ export type RootStackParamList = {
   MyProfile: undefined;
   WineryCheckIn: undefined;
   WinerySearch: undefined;
+  WineryBySlug: { slug: string };
   WineryDetail: { wineryId: string };
   TastingFlightDetail: { flightId: string; wineryId: string };
   GuidedSession: { sessionId: string };

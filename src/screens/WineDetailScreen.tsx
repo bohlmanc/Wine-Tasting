@@ -91,7 +91,7 @@ export default function WineDetailScreen() {
             {wine.vintage ? <Text style={styles.metaItem}>{wine.vintage}</Text> : null}
             {wine.country ? <Text style={styles.metaItem}>{wine.country}</Text> : null}
             {wine.region ? <Text style={styles.metaItem}>{wine.region}</Text> : null}
-            {wine.abv ? <Text style={styles.metaItem}>{wine.abv}%</Text> : null}
+            {wine.abv ? <Text style={styles.metaItem}>{wine.abv.replace(/%/g, '')}%</Text> : null}
           </View>
           {wine.grapes.length > 0 && (
             <Text style={styles.grapes}>{wine.grapes.join(', ')}</Text>

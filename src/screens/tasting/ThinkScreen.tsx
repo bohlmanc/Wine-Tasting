@@ -20,6 +20,7 @@ import { Colors } from '../../constants/colors';
 import { useWineTasting } from '../../context/WineTastingContext';
 import { saveWine } from '../../storage/wineStorage';
 import { loadGuidedSession, saveGuidedSession, loadCompletedFlightSessions } from '../../storage/guidedSessionStorage';
+import { removePendingWine } from '../../storage/flightPendingWineStorage';
 import { Wine } from '../../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -113,6 +114,10 @@ export default function ThinkScreen() {
       }
 
       if (customFlightId && customFlightName) {
+        // Bug 8: remove the pending wine now that the tasting is being saved
+        if (wine.flightWineId) {
+          await removePendingWine(customFlightId, wine.flightWineId);
+        }
         await saveWine({
           ...wine,
           flightId: customFlightId,

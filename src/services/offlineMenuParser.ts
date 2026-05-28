@@ -215,35 +215,29 @@ function parseSegment(segment: string): Omit<FlightPendingWine, 'id'> {
     ? lines.filter((_, i) => i !== lineIndex).join('\n')
     : segment;
 
-  let country = extractCountry(residual);
-  let region = extractRegion(residual, country);
-  if (!country) {
-    country = extractCountry(name);
-    region = extractRegion(name, country);
-  }
+  // Derive country only for region look-up; don't store it in the output.
+  // Menu scanning focuses on: name, vintage, grapes, region — the fields
+  // most useful for a flight without cluttering cards with country/ABV/price.
+  const country = extractCountry(residual) || extractCountry(name);
+  const region = extractRegion(residual, country) || extractRegion(name, country);
 
   return {
     name,
     vintage: extractVintage(segment),
     grapes: extractGrapes(segment),
-    country,
     region,
-    abv: extractAbv(segment),
-    price: extractPrice(segment),
+    // Intentionally omit country, abv, price — too noisy for wine-menu scanning
   };
 }
 
-// Fields a wine entry can have: name, producer (winery), vintage, country, region, grapes, abv, price
+// Fields a wine entry can have: name, vintage, region, grapes
 function countWineFields(wine: Omit<FlightPendingWine, 'id'>): number {
   return [
     wine.name?.trim(),
     wine.producer?.trim(),
     wine.vintage?.trim(),
-    wine.country?.trim(),
     wine.region?.trim(),
     wine.grapes?.length ? 'yes' : '',
-    wine.abv?.trim(),
-    wine.price?.trim(),
   ].filter(Boolean).length;
 }
 

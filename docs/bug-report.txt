@@ -1,0 +1,66 @@
+Can you fix these bugs: 
+
+--- Report 1 ---
+Screen: WineDetail
+Time: 5/22/2026, 5:35:15 PM
+Note: There are two percent symbols for the abv. Shouldn’t allow anything but numbers and periods in the text field
+
+--- Report 2 ---
+Screen: MyTastings
+Time: 5/22/2026, 5:13:43 PM
+Note: Clicking outside, the keyboard should close the keyboard
+
+--- Report 3 ---
+Screen: BasicInfo
+Time: 5/22/2026, 5:13:27 PM
+Note: When looking for the region on a wine bottle, it should look for the region without anything around it no text surrounding it.
+
+--- Report 4 ---
+Screen: BasicInfo
+Time: 5/22/2026, 5:13:05 PM
+Note: Keyboard hides the region when we start typing
+
+--- Report 5 ---
+Screen: WineStyle
+Time: 5/21/2026, 7:00:13 PM
+Note: If you’re exiting the wine tasting in any way (hamburger menu or hitting the back button) it should ask if you’d like to save the tasting or cancel. Even if you cancel, if you added wine to a flight it should persist.
+
+--- Report 6 ---
+Screen: CustomFlight
+Time: 5/21/2026, 6:58:57 PM
+Note: Edit flight is not necessary. Just put an x button for each wine added.
+
+--- Report 7 ---
+Screen: BasicInfo
+Time: 5/21/2026, 6:58:05 PM
+Note: But then when I clicked add a new wine it had the wine from before that it erased saved in the fields.
+
+--- Report 8 ---
+Screen: CustomFlight
+Time: 5/21/2026, 6:56:45 PM
+Note: After adding a wine to the flight I tapped “tap to taste.” Then I hit the back button to come back to my flight and it erased the wine.
+
+--- Report 9 ---
+Screen: CustomFlight
+Time: 5/21/2026, 6:55:43 PM
+Note: Tap to taste should take users to the same menu that “start tasting” but with “edit flight” instead of what the third button usually says.
+
+--- Report 10 ---
+Screen: ScanMenu
+Time: 5/21/2026, 6:53:34 PM
+Note: The OCR gathers too much information on the wines from the menu. It should focus on vintage, grapes, wine name (if there is one) and producer. Oh and region the wine is from.
+
+--- Report 11 ---
+Screen: ScanMenu
+Time: 5/21/2026, 6:52:42 PM
+Note: The keyboard hides the report button if too much text is written for reporting an issue.
+
+--- Report 12 ---
+Screen: ScanMenu
+Time: 5/21/2026, 6:52:12 PM
+Note: And then when you scan the wines, it should create the flight automatically but give you the option to add / delete wines just like with a manually entered flight or even a winery flight. It should be a similar flow after scanning the wine.
+
+--- Report 13 ---
+Screen: ScanMenu
+Time: 5/21/2026, 6:51:44 PM
+Note: When scanning a menu to create a custom flight, it should ask you to name the flight in the beginning just like when entering manually.
