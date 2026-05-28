@@ -23,7 +23,10 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\codyb\\\\Desktop\\\\Claude\\\\Wine App\\\\src\\\\screens\\\\tasting\" -ErrorAction SilentlyContinue)",
       "Bash(Select-Object Name)",
       "WebFetch(domain:www.corkandfizz.com)",
-      "WebFetch(domain:static1.squarespace.com)"
+      "WebFetch(domain:static1.squarespace.com)",
+      "Bash(xcrun devicectl *)",
+      "Bash(ls ~/Library/Logs/DiagnosticReports/ | head -20)",
+      "Read(//Users/haileybohlman/Library/Logs/DiagnosticReports/**)"
     ]
   }
 }

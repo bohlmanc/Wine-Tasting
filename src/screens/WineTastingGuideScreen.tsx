@@ -9,7 +9,6 @@ import {
   ScrollView,
 } from 'react-native';
 import AppHeader from '../components/AppHeader';
-import InfoModal from '../components/InfoModal';
 import { Colors } from '../constants/colors';
 
 const STEP_COLORS = ['#9B1C31', '#4A6FA5', '#2E7D32', '#7B4F9E', Colors.primary, Colors.primary];
