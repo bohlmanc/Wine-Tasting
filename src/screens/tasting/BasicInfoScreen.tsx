@@ -559,15 +559,15 @@ export default function BasicInfoScreen() {
         </TouchableOpacity>
 
         {/* Always-visible core fields */}
-        <Row label="Producer:" info={<InfoModal title="Producer" body="The winery or estate that made the wine — great to track so you can find bottles you loved again." />}>
+        <Row label="Producer:" info={<InfoModal title="Producer" body="The winery or estate that made the wine. Look for 'Produced By' or 'Produced and Bottled by' on the back label." />}>
           <TextInput style={styles.input} value={producer} onChangeText={setProducer} placeholder="" />
         </Row>
 
-        <Row label="Name:" info={<InfoModal title="Wine Name" body="The specific wine name or cuvée — sometimes a vineyard name, sometimes the grape variety. It helps you tell one bottle apart from another by the same producer." />}>
+        <Row label="Name:" info={<InfoModal title="Wine Name" body="Some wines are given a 'made-up' name. This will likely be in large text on the front label. It is different from the grape or vineyard." />}>
           <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="" />
         </Row>
 
-        <Row label="Grape(s):" info={<InfoModal title="Grape Varieties" body="The grape or grapes used to make this wine. Some are single-variety, others are blends. Tracking this is one of the best ways to figure out which grapes you love most." />}>
+        <Row label="Grape(s):" info={<InfoModal title="Grape Varieties" body="The grape or grapes used to make this wine. Some are single-variety (aka one grape), others are blends. Wines not from Europe usually list the grape(s) on the front of back label. With European wines, you'll need to look up the region the wine is from or the wine in particular to discover the grape(s)." />}>
           <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setGrapePickerOpen(true)}>
             <Text style={grapes.length > 0 ? styles.dropdownValue : styles.dropdownPlaceholder}>
               {grapes.length > 0 ? `${grapes.length} selected` : 'Tap to select'}
@@ -585,7 +585,7 @@ export default function BasicInfoScreen() {
           )}
         </Row>
 
-        <Row label="Vintage:" info={<InfoModal title="Vintage" body="The year the grapes were picked. Weather that season affects the flavor, which is why the same wine can taste different year to year. Found prominently on the label." />}>
+        <Row label="Vintage:" info={<InfoModal title="Vintage" body="The year the grapes were picked. Unique weather each year affects the flavor, which is why the same wine can taste different year to year. If there is no year on the label, the wine is non-vintage (aka a blend of multiple years grapes)." />}>
           <TextInput
             style={[styles.input, styles.inputShort]}
             value={vintage}
@@ -655,7 +655,7 @@ export default function BasicInfoScreen() {
               )}
             </Row>
 
-            <Row label="Country:" info={<InfoModal title="Country" body="Where the grapes were grown. Wine is incredibly tied to place — the same grape can taste completely different depending on the country. One of the most fun things to explore." />}>
+            <Row label="Country:" info={<InfoModal title="Country" body="The country the grapes were grown." />}>
               <TouchableOpacity style={styles.dropdownTrigger} onPress={() => { Keyboard.dismiss(); setCountryPickerOpen(true); }}>
                 <Text style={country ? styles.dropdownValue : styles.dropdownPlaceholder}>{country || ''}</Text>
                 <Text style={styles.chevron}>∨</Text>
@@ -688,11 +688,11 @@ export default function BasicInfoScreen() {
               <TextInput style={styles.input} value={vineyard} onChangeText={setVineyard} placeholder="" />
             </Row>
 
-            <Row label="Importer:" info={<InfoModal title="Importer" body="The company that brought this wine into your country — usually on the back label. Great secret weapon: if you love a wine, look for other bottles from the same importer." />}>
+            <Row label="Importer:" info={<InfoModal title="Importer" body="The company that brought this wine into your country, usually found on the back label. Look for the text 'Imported by'. Great secret weapon: if you love a wine, look for other bottles from the same importer." />}>
               <TextInput style={styles.input} value={importer} onChangeText={setImporter} placeholder="" />
             </Row>
 
-            <Row label="ABV:" info={<InfoModal title="Alcohol by Volume" body="The alcohol percentage printed on the label. A great way to cross-check what you tasted — if it felt high and the label says 15%, trust yourself. Under 12% is light, 12–13.5% is medium, above 14% is high." />}>
+            <Row label="ABV:" info={<InfoModal title="Alcohol by Volume" body="The alcohol percentage printed on the label. Look for a number followed by a percent sign somewhere on the bottle, often in small print. In general: under 12% is light, 12–14% is medium, above 14% is high." />}>
               <TextInput
                 style={[styles.input, styles.inputShort]}
                 value={abv}
