@@ -50,11 +50,10 @@ export default function LookColorScreen() {
     : DESSERT_WINE_COLORS;
 
   const handleNext = () => {
-    if (!selected) return;
     const found = colorOptions.find(c => c.name === selected);
     update({ color: selected });
     navigation.navigate('LookDetails', {
-      color: selected,
+      color: selected ?? "",
       colorHex: found?.hex ?? '#888',
       colorSubtitle: found?.subtitle ?? '',
     });
@@ -101,7 +100,7 @@ export default function LookColorScreen() {
       </ScrollView>
 
       <View style={styles.nextBar}>
-        <TouchableOpacity style={[styles.nextBtn, !selected && styles.nextBtnDisabled]} onPress={handleNext} disabled={!selected}>
+        <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
           <Text style={styles.nextBtnText}>NEXT &gt;</Text>
         </TouchableOpacity>
       </View>

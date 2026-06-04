@@ -104,9 +104,8 @@ export default function LookDetailsScreen() {
 
       <View style={styles.nextBar}>
         <TouchableOpacity
-          style={[styles.nextBtn, (!intensity || !clarity) && styles.nextBtnDisabled]}
+          style={styles.nextBtn}
           onPress={handleNext}
-          disabled={!intensity || !clarity}
         >
           <Text style={styles.nextBtnText}>NEXT &gt;</Text>
         </TouchableOpacity>

@@ -14,8 +14,57 @@ import AppHeader from '../../components/AppHeader';
 import InfoModal from '../../components/InfoModal';
 import { Colors } from '../../constants/colors';
 import { useWineTasting } from '../../context/WineTastingContext';
+import Svg, { Path, Circle } from 'react-native-svg';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
+
+function CategoryIcon({ categoryKey, color }: { categoryKey: string; color: string }) {
+  if (categoryKey === 'FRUIT') {
+    return (
+      <Svg width={48} height={54} viewBox="0 0 48 54">
+        <Path d="M24 3 L24 11" stroke={color} strokeWidth={2} strokeLinecap="round" fill="none" />
+        <Path d="M24 6 Q31 2 35 6 Q31 11 24 9" fill={color} opacity={0.65} />
+        <Circle cx={18} cy={18} r={6.5} fill={color} opacity={0.7} />
+        <Circle cx={30} cy={18} r={6.5} fill={color} opacity={0.7} />
+        <Circle cx={11} cy={29} r={6.5} fill={color} opacity={0.78} />
+        <Circle cx={24} cy={29} r={6.5} fill={color} opacity={0.78} />
+        <Circle cx={37} cy={29} r={6.5} fill={color} opacity={0.78} />
+        <Circle cx={17} cy={40} r={6.5} fill={color} opacity={0.88} />
+        <Circle cx={30} cy={40} r={6.5} fill={color} opacity={0.88} />
+        <Circle cx={24} cy={51} r={6} fill={color} />
+      </Svg>
+    );
+  }
+  if (categoryKey === 'HERBS') {
+    return (
+      <Svg width={48} height={54} viewBox="0 0 48 54">
+        <Path d="M24 54 L24 4" stroke={color} strokeWidth={2.5} strokeLinecap="round" fill="none" />
+        <Path d="M24 46 Q10 38 11 26 Q22 30 24 42" fill={color} opacity={0.7} />
+        <Path d="M24 46 Q38 38 37 26 Q26 30 24 42" fill={color} opacity={0.7} />
+        <Path d="M24 32 Q9 22 12 10 Q23 16 24 30" fill={color} opacity={0.82} />
+        <Path d="M24 32 Q39 22 36 10 Q25 16 24 30" fill={color} opacity={0.82} />
+        <Path d="M24 17 Q17 8 22 2 Q28 7 24 16" fill={color} opacity={0.9} />
+      </Svg>
+    );
+  }
+  if (categoryKey === 'OUTDOOR') {
+    return (
+      <Svg width={48} height={54} viewBox="0 0 48 54">
+        <Path d="M20 42 L20 54 L28 54 L28 42 Z" fill={color} opacity={0.8} />
+        <Path d="M24 12 L44 42 L4 42 Z" fill={color} opacity={0.8} />
+        <Path d="M24 2 L40 28 L8 28 Z" fill={color} opacity={0.65} />
+      </Svg>
+    );
+  }
+  if (categoryKey === 'OTHER') {
+    return (
+      <Svg width={48} height={54} viewBox="0 0 48 54">
+        <Path d="M24 4 L27 21 L44 27 L27 33 L24 50 L21 33 L4 27 L21 21 Z" fill={color} opacity={0.85} />
+      </Svg>
+    );
+  }
+  return null;
+}
 
 const CATEGORIES = [
   { key: 'FRUIT', label: 'FRUIT', color: Colors.fruitColor },
@@ -69,6 +118,7 @@ export default function SmellMainScreen() {
               onPress={() => handleCategory(cat.key)}
               activeOpacity={0.8}
             >
+              <CategoryIcon categoryKey={cat.key} color={cat.color} />
               <Text style={[styles.cardLabel, { color: cat.color }]}>{cat.label}</Text>
             </TouchableOpacity>
           ))}
@@ -120,7 +170,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     minHeight: 140,
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    gap: 10,
     padding: 14,
     backgroundColor: Colors.white,
   },

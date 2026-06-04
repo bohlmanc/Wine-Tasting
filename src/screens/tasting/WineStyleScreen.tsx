@@ -9,7 +9,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import Svg, { Path, Ellipse, Circle } from 'react-native-svg';
+import Svg, { Path, Ellipse } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
@@ -99,8 +99,8 @@ export default function WineStyleScreen() {
   }, [navigation, tasting, reset]);
 
   const handleNext = () => {
-    if (!selected) return;
-    update({ style: selected });
+    const style = selected ?? 'red';
+    update({ style });
     navigation.navigate('LookColor');
   };
 
@@ -136,7 +136,7 @@ export default function WineStyleScreen() {
       </ScrollView>
 
       <View style={styles.nextBar}>
-        <TouchableOpacity style={[styles.nextBtn, !selected && styles.nextBtnDisabled]} onPress={handleNext} disabled={!selected}>
+        <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
           <Text style={styles.nextBtnText}>NEXT &gt;</Text>
         </TouchableOpacity>
       </View>
