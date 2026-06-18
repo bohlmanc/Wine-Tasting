@@ -54,6 +54,14 @@ function HomeContent() {
         </TouchableOpacity>
 
         <TouchableOpacity
+          style={[styles.btn, { backgroundColor: Colors.btnWinery }]}
+          onPress={() => navigation.navigate('TastingPartyLobby')}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.btnText}>Tasting Party</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={[styles.btn, { backgroundColor: Colors.btnGuide }]}
           onPress={() => navigation.navigate('WineTastingGuide')}
           activeOpacity={0.85}

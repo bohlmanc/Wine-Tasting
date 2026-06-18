@@ -33,6 +33,7 @@ import {
 import { loadWines } from '../storage/wineStorage';
 import { TastingFlight, Winery, FlightWine, GuidedSession, Wine, WineStyle } from '../types';
 import { useWineTasting } from '../context/WineTastingContext';
+import { useTastingRoom } from '../context/TastingRoomContext';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'TastingFlightDetail'>;
@@ -151,6 +152,8 @@ export default function TastingFlightDetailScreen() {
   const [addStyle, setAddStyle] = useState<WineStyle | null>(null);
 
   const { reset, update, setGuidedSessionId, setTastingType } = useWineTasting();
+  const { room, isHost, startPartyWithWineryFlight } = useTastingRoom();
+  const isPartySetupMode = room !== null && !room.isSetupComplete && isHost;
 
   useEffect(() => {
     (async () => {
@@ -265,6 +268,16 @@ export default function TastingFlightDetailScreen() {
     setAddProducer('');
     setAddVintage('');
     setAddStyle(null);
+  };
+
+  const handleStartParty = async () => {
+    if (!flight || !winery) return;
+    try {
+      await startPartyWithWineryFlight(flight.wines, winery.id, flight.id);
+      navigation.reset({ index: 0, routes: [{ name: 'TastingRoom' }] });
+    } catch (e: any) {
+      Alert.alert('Error', e?.message ?? 'Could not start the party. Check your connection.');
+    }
   };
 
   const handleWineTap = async (wine: FlightWine, sortedIndex: number) => {
@@ -411,6 +424,18 @@ export default function TastingFlightDetailScreen() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {isPartySetupMode && (
+          <View style={styles.partyBanner}>
+            <Text style={styles.partyBannerTitle}>Party Setup Mode</Text>
+            <Text style={styles.partyBannerDesc}>
+              Review the flight below, then start the party when everyone is ready.
+            </Text>
+            <TouchableOpacity style={styles.startPartyBtn} onPress={handleStartParty} activeOpacity={0.85}>
+              <Text style={styles.startPartyBtnText}>Start Party with This Flight</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <Text style={styles.sectionLabel}>The Flight</Text>
         {sortedWines.map((wine, i) => (
@@ -824,5 +849,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textMuted,
     textDecorationLine: 'underline',
+  },
+  partyBanner: {
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 12,
+    padding: 18,
+    marginBottom: 20,
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+  },
+  partyBannerTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.primaryDark,
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+  },
+  partyBannerDesc: {
+    fontSize: 13,
+    color: Colors.primaryDark,
+    textAlign: 'center',
+    opacity: 0.85,
+  },
+  startPartyBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    marginTop: 4,
+  },
+  startPartyBtnText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '800',
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
   },
 });

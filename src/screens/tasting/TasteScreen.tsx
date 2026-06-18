@@ -16,6 +16,7 @@ import InfoModal from '../../components/InfoModal';
 import GaugeDial from '../../components/GaugeDial';
 import { Colors } from '../../constants/colors';
 import { useWineTasting } from '../../context/WineTastingContext';
+import { useTastingRoom } from '../../context/TastingRoomContext';
 import {
   SWEETNESS_STEPS,
   ACIDITY_STEPS,
@@ -39,6 +40,7 @@ const INFO: Record<string, string> = {
 export default function TasteScreen() {
   const navigation = useNavigation<Nav>();
   const { tasting, update } = useWineTasting();
+  const { broadcastTaste } = useTastingRoom();
 
   const isRedWine = tasting.style === 'red';
   const hasTannin = isRedWine;
@@ -73,6 +75,14 @@ export default function TasteScreen() {
       body: BODY_STEPS[bodyIdx],
       finish: FINISH_STEPS[finishIdx],
     });
+    broadcastTaste(
+      SWEETNESS_STEPS[sweetnessIdx],
+      ACIDITY_STEPS[acidityIdx],
+      hasTannin ? TANNIN_STEPS[tanninIdx] : '',
+      ALCOHOL_STEPS[alcoholIdx],
+      BODY_STEPS[bodyIdx],
+      FINISH_STEPS[finishIdx],
+    );
     navigation.navigate('Think');
   };
 

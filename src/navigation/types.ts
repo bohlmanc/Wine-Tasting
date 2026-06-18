@@ -1,5 +1,10 @@
 export type RootStackParamList = {
   Home: undefined;
+  TastingPartyLobby: undefined;
+  TastingRoomWaiting: undefined;
+  PartyFlightSetup: undefined;
+  TastingRoom: undefined;
+  RoomWineResults: { flightWineId: string };
   AddWineType: { startFlight?: boolean } | undefined;
   ScanMenu: undefined;
   BasicInfo: { guidedSessionId?: string; flightWineIndex?: number; addToFlightId?: string; addToFlightName?: string } | undefined;

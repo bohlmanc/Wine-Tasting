@@ -18,6 +18,7 @@ import AppHeader from '../../components/AppHeader';
 import InfoModal from '../../components/InfoModal';
 import { Colors } from '../../constants/colors';
 import { useWineTasting } from '../../context/WineTastingContext';
+import { useTastingRoom } from '../../context/TastingRoomContext';
 import { saveWine } from '../../storage/wineStorage';
 import { loadGuidedSession, saveGuidedSession, loadCompletedFlightSessions } from '../../storage/guidedSessionStorage';
 import { removePendingWine } from '../../storage/flightPendingWineStorage';
@@ -32,6 +33,7 @@ const EMOJI_REACTIONS = ['😍', '😋', '🤔', '😐', '😬', '🤢'];
 export default function ThinkScreen() {
   const navigation = useNavigation<Nav>();
   const { tasting, reset, setCustomFlight } = useWineTasting();
+  const { room, activeFlightWineId, broadcastThink } = useTastingRoom();
   const guidedSessionId = tasting.guidedSessionId ?? null;
   const customFlightId = tasting.customFlightId ?? null;
   const customFlightName = tasting.customFlightName ?? null;
@@ -48,16 +50,25 @@ export default function ThinkScreen() {
 
   const handleDone = async () => {
     const existingId = tasting.id;
+    const fullNotes = emoji ? `${emoji} ${notes}`.trim() : notes;
     const wine: Wine = {
       ...(tasting as Wine),
       id: existingId ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       createdAt: tasting.createdAt ?? new Date().toISOString(),
       liked,
       rating,
-      notes: emoji ? `${emoji} ${notes}`.trim() : notes,
+      notes: fullNotes,
     };
 
     try {
+      if (room && activeFlightWineId) {
+        await saveWine(wine);
+        await broadcastThink(liked, rating, fullNotes);
+        reset();
+        navigation.navigate('RoomWineResults', { flightWineId: activeFlightWineId });
+        return;
+      }
+
       if (retroactiveSessionId && retroactiveFlightWineId) {
         const allSessions = await loadCompletedFlightSessions();
         const archived = allSessions.find(s => s.session.id === retroactiveSessionId);

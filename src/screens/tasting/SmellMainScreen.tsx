@@ -14,6 +14,7 @@ import AppHeader from '../../components/AppHeader';
 import InfoModal from '../../components/InfoModal';
 import { Colors } from '../../constants/colors';
 import { useWineTasting } from '../../context/WineTastingContext';
+import { useTastingRoom } from '../../context/TastingRoomContext';
 import Svg, { Path, Circle } from 'react-native-svg';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -76,6 +77,7 @@ const CATEGORIES = [
 export default function SmellMainScreen() {
   const navigation = useNavigation<Nav>();
   const { tasting } = useWineTasting();
+  const { broadcastSmell } = useTastingRoom();
   const aromas = tasting.aromas ?? [];
 
   const hasAromasIn = (cat: string) => {
@@ -139,7 +141,10 @@ export default function SmellMainScreen() {
       </View>
 
       <View style={styles.nextBar}>
-        <TouchableOpacity style={styles.nextBtn} onPress={() => navigation.navigate('Taste')}>
+        <TouchableOpacity style={styles.nextBtn} onPress={() => {
+          broadcastSmell(tasting.aromas ?? [], tasting.customAromas ?? {});
+          navigation.navigate('Taste');
+        }}>
           <Text style={styles.nextBtnText}>NEXT &gt;</Text>
         </TouchableOpacity>
       </View>

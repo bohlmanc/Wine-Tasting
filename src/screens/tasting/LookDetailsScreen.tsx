@@ -15,6 +15,7 @@ import AppHeader from '../../components/AppHeader';
 import InfoModal from '../../components/InfoModal';
 import { Colors } from '../../constants/colors';
 import { useWineTasting } from '../../context/WineTastingContext';
+import { useTastingRoom } from '../../context/TastingRoomContext';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'LookDetails'>;
@@ -58,12 +59,14 @@ export default function LookDetailsScreen() {
   const route = useRoute<Route>();
   const { color, colorHex, colorSubtitle } = route.params;
   const { tasting, update } = useWineTasting();
+  const { broadcastLook } = useTastingRoom();
 
   const [intensity, setIntensity] = useState(tasting.colorIntensity ?? '');
   const [clarity, setClarity] = useState(tasting.clarity ?? '');
 
   const handleNext = () => {
     update({ colorIntensity: intensity, clarity });
+    broadcastLook(color, intensity, clarity);
     navigation.navigate('SmellMain');
   };
 

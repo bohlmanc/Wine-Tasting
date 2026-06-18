@@ -27,6 +27,19 @@ A React Native mobile app for guided wine tasting. Walk through a structured Loo
 | Flight history (My Flights, Completed Flight Detail) | ✅ Done |
 | Winery admin portal (Next.js) | ⬜ Not started |
 
+### Tasting Party feature
+| Feature | Status |
+|---|---|
+| Supabase schema + RLS | ✅ Done — SQL in `docs/supabase-party-migration.sql` |
+| Room creation + 4-char code | ✅ Done |
+| Join via code + waiting room | ✅ Done |
+| Host flight setup — custom wines | ✅ Done |
+| Host flight setup — winery flight | ✅ Done |
+| Live tasting (polling, 3s interval) | ✅ Done |
+| Per-wine results comparison screen | ✅ Done |
+| Local save to My Tastings | ✅ Done |
+| Realtime push (Supabase Pro) | ⬜ See Prelaunch Tasks |
+
 ---
 
 ## Stack
@@ -235,11 +248,92 @@ Both platforms are built and submitted locally (not via EAS cloud builds).
 
 ---
 
+## Prelaunch Tasks
+
+Things that need to happen before going live with specific features. Not required for dev/testing.
+
+### Tasting Party feature
+
+The party feature currently uses **3-second polling** for live updates (no Supabase Realtime setup required). Before launch, upgrade to Realtime for a better user experience:
+
+1. **Upgrade Supabase to Pro** — the free tier does not include Realtime for `postgres_changes` subscriptions.
+2. **Enable Realtime on the three party tables** via the Supabase dashboard (Database → Replication → supabase_realtime publication):
+   - `tasting_rooms`
+   - `room_participants`
+   - `room_wine_responses`
+3. **Swap polling for Realtime in `TastingRoomContext`** — the commented-out `ALTER PUBLICATION` lines in `docs/supabase-party-migration.sql` and the approach are documented there. Replace the `setInterval` poll block with the `supabase.channel(...).on('postgres_changes', ...)` subscription pattern.
+
+> The polling implementation is fully functional for testing and small groups. Realtime just eliminates the ~3s lag between one user completing a section and others seeing it update.
+
+---
+
+## Tasting Party feature
+
+A shared, real-time tasting session — like Jackbox for wine. One person hosts, everyone tastes the same flight, and you compare tasting notes side-by-side at the end.
+
+### User flow
+
+1. **Host** taps **Tasting Party** on the Home screen → **Create a Room** → enters their name → gets a 4-character room code (e.g. `K7MX`).
+2. **Guests** tap **Tasting Party** → **Join a Room** → enter the code and their name → land on a waiting screen.
+3. **Host** picks the flight on the Party Flight Setup screen:
+   - **Custom flight** — add all wines upfront in a modal form, then tap **Start Party**.
+   - **Winery flight** — navigate to a winery via the existing Winery Check-In flow, then tap **Start Party with This Flight** on the flight detail screen.
+4. **All guests** are automatically forwarded to the **Tasting Room** screen when the host starts.
+5. **Everyone tastes at their own pace** — tap **Taste This Wine** on any card, go through the full Look → Smell → Taste → Think flow. Each wine is also saved to the user's own **My Tastings** collection.
+6. After completing Think for a wine, each user lands on the **Results** screen showing all participants' Look, Smell, Taste, and Think answers side-by-side. Participants still tasting show placeholder dots; their answers fill in on the next poll cycle.
+7. Tap **Back to Room** to return and start the next wine.
+
+### Data flow
+
+- Tasting data starts being broadcast **after WineStyle** (the start of Look). The WineStyle screen itself is not broadcast — it's used only to pre-fill the local context.
+- **Look, Smell, Taste** sections are fire-and-forget writes to Supabase (`room_wine_responses`).
+- **Think** is awaited before navigation to ensure the response row is marked `completed_at` before the Results screen loads.
+- Every wine is saved locally via the existing `saveWine()` call regardless of party state.
+- Polls run every **3 seconds** while in a room, fetching fresh room state, participant list, flight wines, and responses.
+
+### Architecture
+
+| File | Role |
+|---|---|
+| `src/context/TastingRoomContext.tsx` | Global party state; polling loop; all broadcast functions |
+| `src/services/tastingRoomService.ts` | All Supabase CRUD — create/join room, write responses, map snake_case → camelCase |
+| `src/types/room.ts` | TypeScript interfaces: `TastingRoom`, `RoomParticipant`, `RoomFlightWine`, `RoomWineResponse`, `PendingPartyWine` |
+| `src/utils/deviceId.ts` | Generates and caches a persistent anonymous device UUID in AsyncStorage |
+| `docs/supabase-party-migration.sql` | Full SQL schema, RLS policies, and indexes — run once in Supabase SQL editor |
+
+**Screens:**
+
+| Screen | Purpose |
+|---|---|
+| `TastingPartyLobbyScreen` | Entry point — pick Create or Join |
+| `TastingRoomWaitingScreen` | Guests wait here until host finishes flight setup |
+| `PartyFlightSetupScreen` | Host builds the custom flight or navigates to a winery flight |
+| `TastingRoomScreen` | Main hub — flight wine cards with per-participant status dots |
+| `RoomWineResultsScreen` | Side-by-side comparison of all participants' answers for one wine |
+
+**Context is always mounted** (`TastingRoomProvider` wraps the whole app in `App.tsx`). All functions are no-ops when `room` is null, so tasting screens have zero party overhead during solo sessions.
+
+### Database setup
+
+Run `docs/supabase-party-migration.sql` once in the Supabase SQL editor. It creates four tables:
+
+| Table | Contents |
+|---|---|
+| `tasting_rooms` | One row per active room; holds the 4-char code and setup status |
+| `room_participants` | One row per device that has joined; unique on `(room_id, device_id)` |
+| `room_flight_wines` | The locked wine list written when the host taps Start Party |
+| `room_wine_responses` | One row per participant × wine; updated incrementally as each section is completed |
+
+RLS is permissive (anon key read/write on all tables) — the data is non-sensitive and host-level write auth is enforced in app code.
+
+---
+
 ## Docs
 
 | Doc | What's in it |
 |---|---|
 | `docs/winery-partner-feature.md` | Full design reference + Supabase schema SQL + phase plan |
+| `docs/supabase-party-migration.sql` | Tasting Party DB schema — run once in Supabase SQL editor |
 | `docs/camera-launch-issue.md` | Android camera not opening on first tap — symptoms and next steps |
 | `docs/gradle-windows-build.md` | Windows Gradle deadlock patches |
 | `docs/ios-xcode26-build-issues.md` | Xcode 26 compatibility patches |

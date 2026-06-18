@@ -34,6 +34,11 @@ import MyFlightsScreen from '../screens/MyFlightsScreen';
 import CompletedFlightDetailScreen from '../screens/CompletedFlightDetailScreen';
 import CustomFlightScreen from '../screens/CustomFlightScreen';
 import ScanMenuScreen from '../screens/ScanMenuScreen';
+import TastingPartyLobbyScreen from '../screens/TastingPartyLobbyScreen';
+import TastingRoomWaitingScreen from '../screens/TastingRoomWaitingScreen';
+import PartyFlightSetupScreen from '../screens/PartyFlightSetupScreen';
+import TastingRoomScreen from '../screens/TastingRoomScreen';
+import RoomWineResultsScreen from '../screens/RoomWineResultsScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -90,6 +95,11 @@ export default function AppNavigator() {
         <Stack.Screen name="CompletedFlightDetail" component={CompletedFlightDetailScreen} />
         <Stack.Screen name="CustomFlight" component={CustomFlightScreen} />
         <Stack.Screen name="ScanMenu" component={ScanMenuScreen} />
+        <Stack.Screen name="TastingPartyLobby" component={TastingPartyLobbyScreen} />
+        <Stack.Screen name="TastingRoomWaiting" component={TastingRoomWaitingScreen} />
+        <Stack.Screen name="PartyFlightSetup" component={PartyFlightSetupScreen} />
+        <Stack.Screen name="TastingRoom" component={TastingRoomScreen} />
+        <Stack.Screen name="RoomWineResults" component={RoomWineResultsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
