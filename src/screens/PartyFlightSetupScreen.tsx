@@ -54,7 +54,8 @@ export default function PartyFlightSetupScreen() {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (isLeavingRef.current) return; // already confirmed — let the navigation through
+      if (isLeavingRef.current) return;
+      if (e.data.action.type !== 'GO_BACK') return; // only intercept back-button; allow RESET/REPLACE through
       e.preventDefault();
       Alert.alert(
         'Leave Room Setup?',
