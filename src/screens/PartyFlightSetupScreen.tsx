@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { RootStackParamList } from '../navigation/types';
 import AppHeader from '../components/AppHeader';
 import { Colors } from '../constants/colors';
 import { useTastingRoom } from '../context/TastingRoomContext';
+import * as roomService from '../services/tastingRoomService';
 import { PendingPartyWine } from '../types/room';
 import { WineStyle } from '../types';
 
@@ -43,12 +44,40 @@ function emptyDraft(): Omit<PendingPartyWine, 'id'> {
 
 export default function PartyFlightSetupScreen() {
   const navigation = useNavigation<Nav>();
-  const { room, startPartyWithCustomWines } = useTastingRoom();
+  const { room, startPartyWithCustomWines, leaveRoom } = useTastingRoom();
+  const isLeavingRef = useRef(false);
 
   const [wines, setWines] = useState<PendingPartyWine[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [draft, setDraft] = useState(emptyDraft());
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (isLeavingRef.current) return; // already confirmed — let the navigation through
+      e.preventDefault();
+      Alert.alert(
+        'Leave Room Setup?',
+        'The room code will be cancelled and any guests waiting will be removed.',
+        [
+          { text: 'Keep Going', style: 'cancel' },
+          {
+            text: 'Leave Room',
+            style: 'destructive',
+            onPress: async () => {
+              if (room) {
+                try { await roomService.scheduleRoomClose(room.id); } catch {}
+              }
+              isLeavingRef.current = true;
+              await leaveRoom();
+              navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+            },
+          },
+        ],
+      );
+    });
+    return unsubscribe;
+  }, [navigation, room, leaveRoom]);
 
   const openAdd = () => {
     setDraft(emptyDraft());
@@ -81,6 +110,7 @@ export default function PartyFlightSetupScreen() {
     setSaving(true);
     try {
       await startPartyWithCustomWines(wines);
+      isLeavingRef.current = true; // party started — don't prompt on navigation
       navigation.replace('TastingRoom');
     } catch (e: any) {
       Alert.alert('Error', e?.message ?? 'Could not start the party. Check your connection.');
@@ -93,16 +123,7 @@ export default function PartyFlightSetupScreen() {
     navigation.navigate('WineryCheckIn');
   };
 
-  const handleCancel = () => {
-    Alert.alert('Cancel Setup?', 'This will discard the room and your wine list.', [
-      { text: 'Keep Going', style: 'cancel' },
-      {
-        text: 'Cancel Room',
-        style: 'destructive',
-        onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Home' }] }),
-      },
-    ]);
-  };
+  const handleCancel = () => navigation.goBack();
 
   return (
     <SafeAreaView style={styles.safe}>

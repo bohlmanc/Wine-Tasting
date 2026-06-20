@@ -8,6 +8,7 @@ export interface TastingRoom {
   isSetupComplete: boolean;
   isActive: boolean;
   expiresAt: string;
+  closingAt?: string;
   createdAt: string;
 }
 
@@ -19,6 +20,7 @@ export interface RoomParticipant {
   isHost: boolean;
   lastSeenAt: string;
   joinedAt: string;
+  leftAt?: string;
 }
 
 export interface RoomFlightWine {

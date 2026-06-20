@@ -24,6 +24,8 @@ export const EARTH_ITEMS = ['Mushroom', 'Bell Pepper', 'Forest Floor', 'Potting 
 
 export const FLORAL_ITEMS = ['Lilac', 'Lavender', 'Rose', 'Jasmine', 'Honeysuckle', 'Perfume'];
 
+export const OUTDOOR_ITEMS = [...EARTH_ITEMS, ...FLORAL_ITEMS];
+
 export const OAK_ITEMS = ['Vanilla', 'Coconut', 'Cinnamon', 'Coffee', 'Chocolate', 'Smoke'];
 
 export const OTHER_ITEMS = ['Toast', 'Butter', 'Dark Chocolate', 'Cedar', 'Flint', 'Honey', 'Cream', 'Brioche', 'Petrol', 'Mineral'];
@@ -32,8 +34,7 @@ export const ALL_PREDEFINED_AROMAS = new Set([
   ...Object.values(FRUIT_ITEMS).flat(),
   ...HERB_ITEMS,
   ...SPICE_ITEMS,
-  ...EARTH_ITEMS,
-  ...FLORAL_ITEMS,
+  ...OUTDOOR_ITEMS,
   ...OAK_ITEMS,
   ...OTHER_ITEMS,
 ]);

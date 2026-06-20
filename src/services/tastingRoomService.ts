@@ -23,6 +23,7 @@ function mapRoom(row: Record<string, unknown>): TastingRoom {
     isSetupComplete: row.is_setup_complete as boolean,
     isActive: row.is_active as boolean,
     expiresAt: row.expires_at as string,
+    closingAt: row.closing_at as string | undefined,
     createdAt: row.created_at as string,
   };
 }
@@ -36,6 +37,7 @@ function mapParticipant(row: Record<string, unknown>): RoomParticipant {
     isHost: row.is_host as boolean,
     lastSeenAt: row.last_seen_at as string,
     joinedAt: row.joined_at as string,
+    leftAt: row.left_at as string | undefined,
   };
 }
 
@@ -143,7 +145,7 @@ export async function joinRoom(
   if (existing) {
     const { data: updated, error: upErr } = await supabase
       .from('room_participants')
-      .update({ display_name: displayName, last_seen_at: new Date().toISOString() })
+      .update({ display_name: displayName, last_seen_at: new Date().toISOString(), left_at: null })
       .eq('id', existing.id)
       .select()
       .single();
@@ -299,6 +301,33 @@ export async function broadcastThink(
       updated_at: new Date().toISOString(),
     })
     .eq('id', responseId);
+}
+
+export async function leaveRoomAsParticipant(
+  participantId: string,
+  roomId: string,
+): Promise<{ shouldScheduleClose: boolean }> {
+  await supabase
+    .from('room_participants')
+    .update({ left_at: new Date().toISOString() })
+    .eq('id', participantId);
+
+  const { data: active } = await supabase
+    .from('room_participants')
+    .select('id')
+    .eq('room_id', roomId)
+    .is('left_at', null);
+
+  return { shouldScheduleClose: (active ?? []).length === 0 };
+}
+
+export async function scheduleRoomClose(roomId: string): Promise<void> {
+  const closingAt = new Date().toISOString();
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+  await supabase
+    .from('tasting_rooms')
+    .update({ closing_at: closingAt, expires_at: expiresAt })
+    .eq('id', roomId);
 }
 
 export async function updatePresence(participantId: string): Promise<void> {

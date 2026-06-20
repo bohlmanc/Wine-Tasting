@@ -24,7 +24,7 @@ interface TastingRoomContextValue {
 
   createRoom: (displayName: string) => Promise<void>;
   joinRoom: (code: string, displayName: string) => Promise<{ isSetupComplete: boolean }>;
-  leaveRoom: () => void;
+  leaveRoom: () => Promise<void>;
   startPartyWithCustomWines: (wines: PendingPartyWine[]) => Promise<void>;
   startPartyWithWineryFlight: (flightWines: FlightWine[], wineryId: string, flightId: string) => Promise<void>;
   startTastingWine: (flightWineId: string) => Promise<void>;
@@ -127,7 +127,17 @@ export function TastingRoomProvider({ children }: { children: ReactNode }) {
     return { isSetupComplete: r.isSetupComplete };
   }, []);
 
-  const leaveRoom = useCallback(() => {
+  const leaveRoom = useCallback(async () => {
+    if (myParticipant && room) {
+      try {
+        const { shouldScheduleClose } = await roomService.leaveRoomAsParticipant(myParticipant.id, room.id);
+        if (shouldScheduleClose) {
+          await roomService.scheduleRoomClose(room.id);
+        }
+      } catch {
+        // best-effort — don't block navigation if network fails
+      }
+    }
     setRoom(null);
     setMyParticipant(null);
     setParticipants([]);
@@ -135,7 +145,7 @@ export function TastingRoomProvider({ children }: { children: ReactNode }) {
     setResponses([]);
     setActiveFlightWineId(null);
     setActiveResponseId(null);
-  }, []);
+  }, [myParticipant, room]);
 
   const startPartyWithCustomWines = useCallback(async (wines: PendingPartyWine[]) => {
     if (!room) return;

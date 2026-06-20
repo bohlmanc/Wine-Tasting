@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS tasting_rooms (
   is_setup_complete boolean DEFAULT false,   -- false while host is building the flight
   is_active      boolean DEFAULT true,
   expires_at     timestamptz NOT NULL DEFAULT (now() + interval '24 hours'),
+  closing_at     timestamptz,
   created_at     timestamptz DEFAULT now()
 );
 
@@ -23,6 +24,7 @@ CREATE TABLE IF NOT EXISTS room_participants (
   is_host      boolean DEFAULT false,
   last_seen_at timestamptz DEFAULT now(),
   joined_at    timestamptz DEFAULT now(),
+  left_at      timestamptz,
   UNIQUE(room_id, device_id)
 );
 
@@ -104,3 +106,9 @@ CREATE INDEX IF NOT EXISTS idx_tasting_rooms_code ON tasting_rooms(code) WHERE i
 CREATE INDEX IF NOT EXISTS idx_room_participants_room ON room_participants(room_id);
 CREATE INDEX IF NOT EXISTS idx_room_flight_wines_room ON room_flight_wines(room_id);
 CREATE INDEX IF NOT EXISTS idx_room_responses_room ON room_wine_responses(room_id);
+
+-- ─── Migration: host-leave / room-close behaviour ────────────────────────────
+-- Run these two ALTER statements in the Supabase SQL editor if the tables
+-- were already created without the new columns.
+ALTER TABLE tasting_rooms     ADD COLUMN IF NOT EXISTS closing_at timestamptz;
+ALTER TABLE room_participants ADD COLUMN IF NOT EXISTS left_at    timestamptz;
